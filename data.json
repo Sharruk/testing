@@ -496,6 +496,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 13,
+      "filename": "current_stage.docx",
+      "original_filename": "current stage.docx",
+      "custom_filename": "current_stage.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "CAT",
+      "subject": "test",
+      "description": "",
+      "size": "1.2 MB",
+      "upload_date": "2025-11-08 13:30:31",
+      "file_path": "uploads/current_stage.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
