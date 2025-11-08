@@ -50,10 +50,9 @@ uploads/*
 dist/
 build/
 
-# Replit specific
-.replit
-replit.nix
+# Replit specific (keep config files for deployment)
 .config/
 .cache/
 .upm/
+.pythonlibs/
 uv.lock
