@@ -110,6 +110,7 @@ A comprehensive Flask-based web portal designed for college students to upload, 
 
 ## Changelog
 
+- November 8, 2025. **Replit Import Update**: Refreshed Replit environment setup - installed Python 3.11 with all required dependencies (Flask 3.1+, SQLAlchemy 2.0+, psycopg2-binary, Gunicorn, Flask-Login, Flask-Mail, etc.), configured Flask development workflow on port 5000 with 0.0.0.0 binding and webview output, set up autoscale deployment with Gunicorn (2 workers, port 5000, reuse-port enabled), updated .gitignore to preserve Replit config files, verified server running successfully with all routes accessible
 - November 7, 2025. **Replit Import**: Successfully imported GitHub repository to Replit environment - installed Python 3.11 with all required dependencies (Flask, SQLAlchemy, psycopg2-binary, etc.), created SQLite database with schema initialization, configured workflow to run Flask development server on port 5000 with 0.0.0.0 binding for webview access, set up autoscale deployment with Gunicorn production server, verified all features working (navigation, static assets, database connectivity)
 - June 19, 2025. Initial setup
 - June 19, 2025. Fixed file upload validation and department key normalization
