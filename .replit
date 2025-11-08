@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pkg-config", "qhull", "tcl", "tk", "zlib"]
+packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "gobject-introspection", "gtk3", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pkg-config", "postgresql", "qhull", "tcl", "tk", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -16,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "flask-dev-server"
+args = "Start application"
 
 [[workflows.workflow]]
-name = "flask-dev-server"
+name = "Start application"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -35,9 +35,9 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 39293
+localPort = 38839
 externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "--workers", "2", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
