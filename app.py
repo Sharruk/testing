@@ -2142,8 +2142,7 @@ def club_screenshot(filename):
 @admin_required
 def delete_club(club_id):
     """Delete a club (admin only)"""
-    try
-        
+    try:
         clubs_data = load_clubs_data()
         clubs = clubs_data.get('clubs', [])
         
