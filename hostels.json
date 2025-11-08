@@ -16,7 +16,21 @@
       "photo_filename": "hostel_20250630_171834_Screenshot_2025-06-30_224841.png",
       "photo_path": "uploads/hostels/hostel_20250630_171834_Screenshot_2025-06-30_224841.png",
       "date_added": "2025-06-30T17:18:34.339961"
+    },
+    {
+      "id": 2,
+      "name": "G7",
+      "category": "Boys",
+      "description": "",
+      "maps_link": "",
+      "facilities": [
+        "Wifi"
+      ],
+      "basic_rules": "",
+      "photo_filename": "hostel_20251108_182847_Screenshot_2.png",
+      "photo_path": "uploads/hostels/hostel_20251108_182847_Screenshot_2.png",
+      "date_added": "2025-11-08T18:28:47.361204"
     }
   ],
-  "next_id": 2
+  "next_id": 3
 }

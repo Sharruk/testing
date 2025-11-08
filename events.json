@@ -9,7 +9,17 @@
       "registration_link": "",
       "poster_filename": null,
       "date_added": "2025-06-30T17:31:20.243905"
+    },
+    {
+      "id": 2,
+      "name": "instincts",
+      "description": "",
+      "event_datetime": "2025-11-22T12:00:00",
+      "category": "Cultural Fest",
+      "registration_link": "",
+      "poster_filename": null,
+      "date_added": "2025-11-08T18:29:34.606185"
     }
   ],
-  "next_id": 2
+  "next_id": 3
 }
