@@ -402,8 +402,10 @@ def upload_service_verify():
                     flash('Too many failed attempts. Please wait 15 minutes before trying again.', 'error')
                     
         except Exception as e:
+            import traceback
             app.logger.error(f"Error verifying upload OTP: {str(e)}")
-            flash('Error verifying code. Please try again.', 'error')
+            app.logger.error(f"Full traceback: {traceback.format_exc()}")
+            flash(f'An error occurred during login: {str(e)}. Please try again or contact support.', 'error')
     
     return render_template('upload_service_verify.html')
 
