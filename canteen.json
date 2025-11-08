@@ -1,0 +1,21 @@
+{
+  "canteens": [
+    {
+      "id": 1,
+      "name": "SSN Main canteen",
+      "description": "this is the main canteen in ssn and in snu college.",
+      "photo_filename": "canteen_20250630_134033_Screenshot_2025-06-30_191046.png",
+      "photo_path": "uploads/canteen/canteen_20250630_134033_Screenshot_2025-06-30_191046.png",
+      "date_added": "2025-06-30T13:40:33.599247"
+    },
+    {
+      "id": 3,
+      "name": "Ashwins",
+      "description": "",
+      "photo_filename": "canteen_20251108_115933_Screenshot_2025-11-08_170045.png",
+      "photo_path": "uploads/canteen/canteen_20251108_115933_Screenshot_2025-11-08_170045.png",
+      "date_added": "2025-11-08T11:59:33.947660"
+    }
+  ],
+  "next_id": 4
+}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Email - Upload Materials{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-2">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('index') }}">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('upload_service') }}">
+                    <i class="fas fa-upload me-1"></i>Upload Materials
+                </a>
+            </li>
+            <li class="breadcrumb-item active">
+                <i class="fas fa-key me-1"></i>Verify Code
+            </li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-key me-2"></i>Enter Verification Code
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <i class="fas fa-envelope-open fa-3x text-success"></i>
+                    </div>
+                    <h5>Check Your Email</h5>
+                    <p class="text-muted">
+                        We've sent a 6-digit verification code to your SSN email address. 
+                        Please enter it below to proceed with uploading materials.
+                    </p>
+                </div>
+
+                <form method="POST" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label for="otp" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Verification Code
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-hashtag"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg text-center" 
+                                id="otp" 
+                                name="otp" 
+                                placeholder="Enter 6-digit code"
+                                pattern="[0-9]{6}"
+                                maxlength="6"
+                                title="Please enter a 6-digit verification code"
+                                required
+                                autocomplete="one-time-code"
+                            >
+                            <div class="invalid-feedback">
+                                Please enter a valid 6-digit verification code.
+                            </div>
+                        </div>
+                        <div class="form-text text-center">
+                            <i class="fas fa-clock me-1"></i>
+                            Code expires in 10 minutes
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg" id="verifyBtn">
+                            <i class="fas fa-check me-2"></i>Verify and Upload
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-info" onclick="resendCode()" id="resendBtn">
+                            <i class="fas fa-redo me-2"></i>Resend Code
+                        </button>
+                        
+                        <a href="{{ url_for('upload_service') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Tips -->
+                <div class="alert alert-light mt-4">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Tips:</h6>
+                    <ul class="mb-0 small">
+                        <li>Check your spam folder if you don't see the email</li>
+                        <li>Code is case-sensitive and expires in 10 minutes</li>
+                        <li>You have 5 attempts before temporary lockout</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Auto-format OTP input
+document.getElementById('otp').addEventListener('input', function(e) {
+    // Only allow digits
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Resend code function
+function resendCode() {
+    const resendBtn = document.getElementById('resendBtn');
+    const originalText = resendBtn.innerHTML;
+    
+    resendBtn.disabled = true;
+    resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    
+    // Make AJAX request to resend OTP
+    fetch('/upload-service/resend-otp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show mt-3';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').appendChild(alertDiv);
+            
+            // Start cooldown timer
+            let countdown = 120; // 2 minutes
+            const timer = setInterval(() => {
+                resendBtn.innerHTML = `<i class="fas fa-clock me-2"></i>Resend in ${countdown}s`;
+                countdown--;
+                
+                if (countdown < 0) {
+                    clearInterval(timer);
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = originalText;
+                }
+            }, 1000);
+            
+        } else {
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').appendChild(alertDiv);
+            
+            resendBtn.disabled = false;
+            resendBtn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = originalText;
+    });
+}
+</script>
+{% endblock %}

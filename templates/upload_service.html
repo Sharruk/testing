@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Materials - College Portal{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-2">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('index') }}">
+                    <i class="fas fa-home me-1"></i>Home
+                </a>
+            </li>
+            <li class="breadcrumb-item active">
+                <i class="fas fa-upload me-1"></i>Upload Materials
+            </li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload Study Materials
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                    </div>
+                    <h4>Verify Your SSN Email</h4>
+                    <p class="text-muted">
+                        To upload materials and contribute to the college portal, please verify your SSN email address. 
+                        We'll send you a 6-digit verification code to ensure secure access.
+                    </p>
+                </div>
+
+                <form method="POST" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-2"></i>SSN Email Address
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-at"></i>
+                            </span>
+                            <input 
+                                type="email" 
+                                class="form-control form-control-lg" 
+                                id="email" 
+                                name="email" 
+                                placeholder="yourname@ssn.edu.in"
+                                pattern=".+@ssn\.edu\.in"
+                                title="Please enter a valid @ssn.edu.in email address"
+                                required
+                            >
+                            <div class="invalid-feedback">
+                                Please enter a valid @ssn.edu.in email address.
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Only @ssn.edu.in email addresses are allowed for contributor access.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Send Verification Code
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Information Section -->
+                <hr class="my-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                                <h6>Secure Verification</h6>
+                                <small class="text-muted">6-digit OTP with 10-minute expiry</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-upload text-info fa-2x mb-2"></i>
+                                <h6>Upload Materials</h6>
+                                <small class="text-muted">Question papers, notes, and resources</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                var email = form.querySelector('#email');
+                if (!email.value.endsWith('@ssn.edu.in')) {
+                    email.setCustomValidity('Please enter a valid @ssn.edu.in email address');
+                } else {
+                    email.setCustomValidity('');
+                }
+                
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

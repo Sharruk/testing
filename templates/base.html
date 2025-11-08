@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}College Materials & PYQs Portal{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>
+                College Materials & PYQs
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('calculators_home') }}">
+                            <i class="fas fa-calculator me-1"></i> Calculators
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('search') }}">
+                            <i class="fas fa-search me-1"></i> Search Files
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('community') }}">
+                            <i class="fas fa-comments me-1"></i> Community
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clubs') }}">
+                            <i class="fas fa-users me-1"></i> Student Clubs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('canteen') }}">
+                            <i class="fas fa-utensils me-1"></i> Canteen
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('campus_places') }}">
+                            <i class="fas fa-map-marker-alt me-1"></i> Campus Places
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('hostel_info') }}">
+                            <i class="fas fa-building me-1"></i> Hostel Info
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upcoming_events') }}">
+                            <i class="fas fa-calendar-alt me-1"></i> Events
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('bus_routes') }}">
+                            <i class="fas fa-bus me-1"></i> Bus Routes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upload_service') }}">
+                            <i class="fas fa-upload me-1"></i> Upload
+                        </a>
+                    </li>
+                    {% if not current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-sign-in-alt me-1"></i> Sign In
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="loginDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('quick_login') }}">
+                                <i class="fas fa-user-check me-1 text-primary"></i> Quick Login
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('upload_service') }}">
+                                <i class="fas fa-shield-alt me-1 text-success"></i> SSN Email - Get Contributor Access
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('guest_login') }}">
+                                <i class="fas fa-user-plus me-1 text-info"></i> Any Email - Get Guest Access
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Authentication Section -->
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-1"></i> {{ current_user.name }}
+                                {% if current_user.is_contributor %}
+                                    {% if current_user.is_verification_expired() %}
+                                        <span class="badge bg-danger ms-1">Contributor - Expired</span>
+                                    {% elif current_user.days_until_reverify() <= 7 %}
+                                        <span class="badge bg-warning ms-1">Contributor - {{ current_user.days_until_reverify() }} days left</span>
+                                    {% else %}
+                                        <span class="badge bg-success ms-1">Contributor</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-info ms-1">Guest</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                <li><span class="dropdown-item-text"><strong>{{ current_user.email }}</strong></span></li>
+                                {% if current_user.ssn_email %}
+                                    <li><span class="dropdown-item-text small text-muted">
+                                        <i class="fas fa-shield-alt me-1 text-success"></i> SSN: {{ current_user.ssn_email }}
+                                    </span></li>
+                                {% endif %}
+                                {% if current_user.last_verified_at %}
+                                    <li><span class="dropdown-item-text small text-muted">
+                                        <i class="fas fa-clock me-1"></i> Verified: {{ current_user.last_verified_at.strftime('%b %d, %Y') }}
+                                    </span></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                {% if current_user.is_contributor %}
+                                    {% if current_user.is_verification_expired() %}
+                                        <li><a class="dropdown-item text-danger" href="{{ url_for('verify_ssn_email') }}">
+                                            <i class="fas fa-exclamation-triangle me-1"></i> Re-verify SSN Email
+                                        </a></li>
+                                        <li><span class="dropdown-item-text small text-danger">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Your verification expired. Re-verify to continue uploading.
+                                        </span></li>
+                                    {% elif current_user.days_until_reverify() <= 7 %}
+                                        <li><a class="dropdown-item text-warning" href="{{ url_for('verify_ssn_email') }}">
+                                            <i class="fas fa-clock me-1"></i> Re-verify Soon ({{ current_user.days_until_reverify() }} days left)
+                                        </a></li>
+                                        <li><span class="dropdown-item-text small text-warning">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Consider re-verifying to maintain access.
+                                        </span></li>
+                                    {% else %}
+                                        <li><a class="dropdown-item" href="{{ url_for('upload') }}">
+                                            <i class="fas fa-upload me-1"></i> Upload Files
+                                        </a></li>
+                                        <li><span class="dropdown-item-text small text-success">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {{ current_user.days_until_reverify() }} days until re-verification needed
+                                        </span></li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{{ url_for('verify_ssn_email') }}">
+                                        <i class="fas fa-shield-alt me-1 text-warning"></i> Verify SSN Email
+                                    </a></li>
+                                    <li><span class="dropdown-item-text small text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Verify your SSN email to gain contributor access
+                                    </span></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb Navigation -->
+    {% block breadcrumb %}{% endblock %}
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            {% set alert_class = 'success' %}
+                            {% set alert_icon = 'check-circle' %}
+                            {% if category == 'error' %}
+                                {% set alert_class = 'danger' %}
+                                {% set alert_icon = 'exclamation-triangle' %}
+                            {% elif category == 'warning' %}
+                                {% set alert_class = 'warning' %}
+                                {% set alert_icon = 'exclamation-triangle' %}
+                            {% elif category == 'info' %}
+                                {% set alert_class = 'info' %}
+                                {% set alert_icon = 'info-circle' %}
+                            {% endif %}
+                            <div class="alert alert-{{ alert_class }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ alert_icon }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted">College Materials & PYQs Portal</h6>
+                    <p class="text-muted small">Your academic resource hub for study materials and previous year question papers.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted small">
+                        Built with <i class="fas fa-heart text-danger"></i> for students
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- CSRF Token Setup for AJAX -->
+    <script>
+        // Get CSRF token from meta tag
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+        
+        // Override fetch to automatically include CSRF token
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            if (options.method && options.method.toUpperCase() !== 'GET') {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    options.headers.append('X-CSRFToken', getCSRFToken());
+                } else {
+                    options.headers['X-CSRFToken'] = getCSRFToken();
+                }
+            }
+            return originalFetch(url, options);
+        };
+    </script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

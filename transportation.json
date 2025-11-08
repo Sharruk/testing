@@ -1,0 +1,73 @@
+{
+  "bus_routes": [
+    {
+      "id": 1,
+      "title": "SSN Bus Route - Chennai Central",
+      "description": "Daily bus service from Chennai Central Railway Station to SSN College of Engineering. Peak hours: 7:30 AM, 8:30 AM (Morning), 5:30 PM, 6:30 PM (Evening). Contact: transport@ssn.edu.in for more details.",
+      "filename": "bus_route_20250626_sample_chennai_central.pdf",
+      "original_filename": "Chennai_Central_Bus_Route.pdf",
+      "file_size": 245760,
+      "file_extension": "pdf",
+      "size": "240.0 KB",
+      "upload_date": "2025-06-26T03:45:00.000000",
+      "file_path": "uploads/bus_routes/bus_route_20250626_sample_chennai_central.pdf",
+      "likes": 5,
+      "dislikes": 0,
+      "comments": [
+        {
+          "name": "Parent Kumar",
+          "comment": "Very helpful for new students! Thank you for providing clear timings.",
+          "timestamp": "2025-06-26T04:00:00.000000"
+        },
+        {
+          "name": "Student Priya",
+          "comment": "Is this route available on weekends too?",
+          "timestamp": "2025-06-26T04:15:00.000000"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "bus routes",
+      "description": "",
+      "filename": "bus_route_20250627_030159_Calendar_of_events_2025-26.pdf",
+      "original_filename": "Calendar of events 2025-26.pdf",
+      "file_size": 564385,
+      "file_extension": "pdf",
+      "size": "551.2 KB",
+      "upload_date": "2025-06-27T03:01:59.898055",
+      "file_path": "uploads/bus_routes/bus_route_20250627_030159_Calendar_of_events_2025-26.pdf",
+      "likes": 4,
+      "dislikes": 2,
+      "comments": [
+        {
+          "name": "rock",
+          "comment": "what the rock is cooking.",
+          "timestamp": "2025-06-27T03:24:21.910666"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "hostel bus routes",
+      "description": "testing",
+      "filename": "bus_route_20251108_121035_1._Core_Drone_Path_Planning_Benchmark_Metrics_The.pdf",
+      "original_filename": "1. Core Drone Path Planning Benchmark Metrics_The.pdf",
+      "file_size": 441472,
+      "file_extension": "pdf",
+      "size": "431.1 KB",
+      "upload_date": "2025-11-08T12:10:35.128486",
+      "file_path": "uploads/bus_routes/bus_route_20251108_121035_1._Core_Drone_Path_Planning_Benchmark_Metrics_The.pdf",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": [
+        {
+          "name": "tester",
+          "comment": "testing if it is showing",
+          "timestamp": "2025-11-08T12:13:01.249420"
+        }
+      ]
+    }
+  ],
+  "next_id": 7
+}
