@@ -1,254 +1,513 @@
 {% extends "base.html" %}
 
-{% block title %}SSN Canteens{% endblock %}
+{% block title %}SSN Canteen - Food & Dining{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Page Header -->
+    <!-- Hero Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h1 class="card-title mb-3">
-                        <i class="fas fa-utensils me-3"></i>SSN Canteens
+            <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-utensils me-3"></i>SSN Canteen
                     </h1>
-                    <p class="card-text lead">
-                        Explore the different canteens available at SSN College of Engineering, Chennai.
+                    <p class="lead mb-0">
+                        Your favorite campus dining destination - Fresh, Tasty, Affordable
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add Canteen Button -->
+    <!-- About Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <button type="button" class="btn btn-success btn-lg" id="addCanteenBtn" onclick="toggleAddForm()">
-                <i class="fas fa-plus me-2"></i>+ Add Canteen
-            </button>
-        </div>
-    </div>
-
-    <!-- Add Canteen Form (Hidden by default) -->
-    <div class="row mb-4" id="addCanteenForm" style="display: none;">
-        <div class="col-12">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-plus me-2"></i>Add New Canteen
-                    </h5>
-                </div>
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <form action="{{ url_for('add_canteen') }}" method="post" enctype="multipart/form-data" id="canteenForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="canteen_name" class="form-label">Canteen Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="canteen_name" name="canteen_name" 
-                                       placeholder="e.g., Main Cafeteria" required>
+                    <h3 class="card-title text-success mb-4">
+                        <i class="fas fa-info-circle me-2"></i>About SSN Canteen
+                    </h3>
+                    <p class="card-text" style="font-size: 1.05rem; line-height: 1.8;">
+                        SSN Canteen is the heart of campus dining, serving delicious and hygienic food to students, faculty, and staff. 
+                        We pride ourselves on offering a variety of South Indian and North Indian dishes, snacks, and beverages at affordable prices. 
+                        Our dedicated team ensures fresh preparation and maintains high standards of cleanliness and quality.
+                    </p>
+                    <div class="row mt-4 g-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Hygienic Food</h6>
+                                    <small class="text-muted">Freshly prepared daily</small>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="canteen_photo" class="form-label">Canteen Photo <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" id="canteen_photo" name="canteen_photo" 
-                                       accept=".jpg,.jpeg,.png" required>
-                                <div class="form-text">Supported formats: JPG, PNG (Front view of the canteen)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-dollar-sign text-success fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Affordable Prices</h6>
+                                    <small class="text-muted">Student-friendly rates</small>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="canteen_description" class="form-label">Description (Optional)</label>
-                            <textarea class="form-control" id="canteen_description" name="canteen_description" rows="3" 
-                                      placeholder="Brief description about this canteen..."></textarea>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-pizza-slice text-success fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Variety Menu</h6>
+                                    <small class="text-muted">Multiple cuisines</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="submitBtn">
-                                <i class="fas fa-plus me-2"></i>Add Canteen
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Canteens Display -->
-    <div class="row">
-        <div class="col-12">
-            {% if canteens %}
-                <h3 class="mb-4">
-                    <i class="fas fa-utensils me-2"></i>Available Canteens 
-                    <span class="badge bg-success">{{ canteens|length }}</span>
-                </h3>
-                
-                <div class="row">
-                    {% for canteen in canteens %}
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card h-100 shadow-sm hover-card">
-                            <!-- Canteen Photo -->
-                            <div class="canteen-photo-container" style="height: 250px; overflow: hidden;">
-                                <img src="{{ url_for('canteen_photo', filename=canteen.photo_filename) }}" 
-                                     class="card-img-top" 
-                                     style="width: 100%; height: 100%; object-fit: cover;"
-                                     alt="{{ canteen.name }}"
-                                     loading="lazy">
-                            </div>
-                            
-                            <div class="card-body">
-                                <h5 class="card-title text-success mb-3">
-                                    <i class="fas fa-utensils me-2"></i>{{ canteen.name }}
-                                </h5>
-                                
-                                {% if canteen.description %}
-                                <p class="card-text text-muted mb-3">{{ canteen.description }}</p>
-                                {% endif %}
-                                
-                                <!-- Date Added -->
-                                <div class="small text-muted mb-3">
-                                    <i class="fas fa-calendar me-1"></i>
-                                    Added: {{ canteen.date_added[:10] if canteen.date_added else 'Unknown' }}
+    <!-- Timings & Location Section -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h4 class="card-title text-success mb-4">
+                        <i class="fas fa-clock me-2"></i>Operating Hours
+                    </h4>
+                    <div class="timing-list">
+                        <div class="timing-item mb-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">Breakfast</h6>
+                                    <small class="text-muted">South Indian specials</small>
                                 </div>
-                            </div>
-                            
-                            <!-- Admin Delete Button -->
-                            <div class="card-footer bg-white">
-                                <div class="d-flex justify-content-end">
-                                    <button class="btn btn-outline-danger btn-sm" 
-                                            onclick="deleteCanteen({{ canteen.id }}, '{{ canteen.name }}')">
-                                        <i class="fas fa-trash me-1"></i>Delete
-                                    </button>
-                                </div>
+                                <span class="badge bg-success px-3 py-2" style="font-size: 0.95rem;">8:00 AM - 10:00 AM</span>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
-                            <h4 class="text-muted">No Canteens Available</h4>
-                            <p class="text-muted">Canteen information will be available here soon.</p>
-                            <p class="text-success">Click the "Add Canteen" button above to add the first canteen.</p>
+                        <div class="timing-item mb-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">Lunch</h6>
+                                    <small class="text-muted">Full meals & varieties</small>
+                                </div>
+                                <span class="badge bg-success px-3 py-2" style="font-size: 0.95rem;">12:00 PM - 2:30 PM</span>
+                            </div>
+                        </div>
+                        <div class="timing-item mb-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">Snacks</h6>
+                                    <small class="text-muted">Tea, coffee & snacks</small>
+                                </div>
+                                <span class="badge bg-success px-3 py-2" style="font-size: 0.95rem;">3:00 PM - 5:00 PM</span>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mb-0 mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small>Timings may vary during exams and holidays</small>
                         </div>
                     </div>
                 </div>
-            {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h4 class="card-title text-success mb-4">
+                        <i class="fas fa-map-marker-alt me-2"></i>Location
+                    </h4>
+                    <div class="mb-4">
+                        <p class="mb-3">
+                            <i class="fas fa-building text-success me-2"></i>
+                            <strong>Main Canteen Building</strong><br>
+                            <span class="ms-4 text-muted">SSN College of Engineering Campus<br>Kalavakkam, Chennai - 603110</span>
+                        </p>
+                        <p class="mb-3">
+                            <i class="fas fa-walking text-success me-2"></i>
+                            <strong>Easy Access:</strong><br>
+                            <span class="ms-4 text-muted">Located near the central block, between academic buildings A & B</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Google Maps Navigation Button -->
+                    <a href="https://maps.google.com/?q=SSN+College+of+Engineering+Canteen,+Kalavakkam,+Chennai" 
+                       target="_blank" 
+                       class="btn btn-success btn-lg w-100 shadow-sm">
+                        <i class="fas fa-map-marked-alt me-2"></i>Open in Google Maps
+                        <i class="fas fa-external-link-alt ms-2 small"></i>
+                    </a>
+                    
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-route me-1"></i>Get directions from anywhere on campus
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Popular Items Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-success mb-4">
+                        <i class="fas fa-fire me-2"></i>Popular Items
+                    </h3>
+                    <p class="text-muted mb-4">Student favorites that keep everyone coming back!</p>
+                    
+                    <div class="row g-3">
+                        <!-- Popular Item 1 -->
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-success h-100 popular-item">
+                                <div class="card-body text-center">
+                                    <div class="item-icon mb-3">
+                                        <i class="fas fa-cheese fa-3x text-success"></i>
+                                    </div>
+                                    <h5 class="card-title mb-2">Masala Dosa</h5>
+                                    <p class="text-muted small mb-2">Crispy & delicious</p>
+                                    <div class="badge bg-success-subtle text-success">
+                                        <i class="fas fa-star me-1"></i>Most Popular
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Item 2 -->
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-success h-100 popular-item">
+                                <div class="card-body text-center">
+                                    <div class="item-icon mb-3">
+                                        <i class="fas fa-drumstick-bite fa-3x text-success"></i>
+                                    </div>
+                                    <h5 class="card-title mb-2">Chicken Biriyani</h5>
+                                    <p class="text-muted small mb-2">Aromatic & flavorful</p>
+                                    <div class="badge bg-success-subtle text-success">
+                                        <i class="fas fa-heart me-1"></i>Fan Favorite
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Item 3 -->
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-success h-100 popular-item">
+                                <div class="card-body text-center">
+                                    <div class="item-icon mb-3">
+                                        <i class="fas fa-bread-slice fa-3x text-success"></i>
+                                    </div>
+                                    <h5 class="card-title mb-2">Paneer Paratha</h5>
+                                    <p class="text-muted small mb-2">Stuffed & tasty</p>
+                                    <div class="badge bg-success-subtle text-success">
+                                        <i class="fas fa-thumbs-up me-1"></i>Top Rated
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Item 4 -->
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-success h-100 popular-item">
+                                <div class="card-body text-center">
+                                    <div class="item-icon mb-3">
+                                        <i class="fas fa-coffee fa-3x text-success"></i>
+                                    </div>
+                                    <h5 class="card-title mb-2">Filter Coffee</h5>
+                                    <p class="text-muted small mb-2">Fresh & energizing</p>
+                                    <div class="badge bg-success-subtle text-success">
+                                        <i class="fas fa-bolt me-1"></i>Energy Boost
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Menu & Prices Button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-light">
+                <div class="card-body text-center py-5">
+                    <h3 class="mb-3">
+                        <i class="fas fa-book-open me-2"></i>Full Menu & Pricing
+                    </h3>
+                    <p class="text-muted mb-4">
+                        Browse our complete menu with detailed prices and nutritional information
+                    </p>
+                    <button class="btn btn-success btn-lg px-5 shadow" onclick="showComingSoon('menu')">
+                        <i class="fas fa-utensils me-2"></i>View Menu & Prices
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Will open detailed menu website with images and prices
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-rocket me-2"></i>Coming Soon - Exciting Features!
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        We're constantly working to improve your canteen experience. Here's what's coming next:
+                    </p>
+                    
+                    <div class="row g-4">
+                        <!-- Feature 1: Ratings & Reviews -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-star fa-3x text-warning"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Ratings & Reviews</h5>
+                                <p class="text-muted mb-3">
+                                    Rate your favorite dishes and read reviews from fellow students. Share your food experiences!
+                                </p>
+                                <div class="badge bg-primary-subtle text-primary">
+                                    <i class="fas fa-clock me-1"></i>Coming in 2 weeks
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 2: Discussion Forum -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-comments fa-3x text-info"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Discussion Forum</h5>
+                                <p class="text-muted mb-3">
+                                    Join discussions about menu items, suggest new dishes, and connect with food enthusiasts.
+                                </p>
+                                <div class="badge bg-primary-subtle text-primary">
+                                    <i class="fas fa-clock me-1"></i>Coming in 3 weeks
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 3: Live Crowd Status -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-users fa-3x text-danger"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Live Crowd Status</h5>
+                                <p class="text-muted mb-3">
+                                    Check real-time crowd levels before heading to the canteen. Plan your visit during less busy hours!
+                                </p>
+                                <div class="badge bg-primary-subtle text-primary">
+                                    <i class="fas fa-clock me-1"></i>Coming in 4 weeks
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 4: Pre-Order System -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-mobile-alt fa-3x text-success"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Pre-Order System</h5>
+                                <p class="text-muted mb-3">
+                                    Order your meals in advance and skip the queue. Pick up your food when it's ready!
+                                </p>
+                                <div class="badge bg-warning-subtle text-warning">
+                                    <i class="fas fa-lightbulb me-1"></i>In Planning
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 5: Nutritional Info -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-heartbeat fa-3x text-danger"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Nutritional Information</h5>
+                                <p class="text-muted mb-3">
+                                    View calories, protein, and other nutritional details for every menu item. Eat healthy!
+                                </p>
+                                <div class="badge bg-warning-subtle text-warning">
+                                    <i class="fas fa-lightbulb me-1"></i>In Planning
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature 6: Daily Specials -->
+                        <div class="col-md-4">
+                            <div class="coming-soon-item p-4 bg-light rounded h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-calendar-check fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="fw-bold mb-3">Daily Specials Board</h5>
+                                <p class="text-muted mb-3">
+                                    Get notified about daily specials, combo offers, and seasonal menu items. Never miss a deal!
+                                </p>
+                                <div class="badge bg-warning-subtle text-warning">
+                                    <i class="fas fa-lightbulb me-1"></i>In Planning
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Want to suggest a feature?</strong> Contact the canteen management or use our feedback form (coming soon!)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Management Section (Hidden for non-contributors) -->
+    {% if current_user.is_authenticated and current_user.is_contributor %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>Admin Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Administrative tools for managing canteen information</p>
+                    <a href="#" onclick="alert('Admin features coming soon! This will allow editing hours, menu items, and other canteen details.'); return false;" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Edit Canteen Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <style>
-.hover-card {
-    transition: all 0.3s ease-in-out;
+.popular-item {
+    transition: all 0.3s ease;
+    cursor: default;
 }
 
-.hover-card:hover {
+.popular-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.2);
 }
 
-.canteen-photo-container {
+.coming-soon-item {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.coming-soon-item:hover {
+    border-color: #0d6efd;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.15);
+}
+
+.feature-icon {
+    animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.timing-item {
+    transition: all 0.2s ease;
+}
+
+.timing-item:hover {
+    transform: translateX(5px);
+    background-color: #e9ecef !important;
+}
+
+.bg-gradient {
     position: relative;
-    background: #f8f9fa;
+    overflow: hidden;
 }
 
-.canteen-photo-container img {
-    transition: transform 0.3s ease;
-}
-
-.hover-card:hover .canteen-photo-container img {
-    transform: scale(1.05);
+.bg-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.1;
 }
 </style>
 
 <script>
-// Toggle Add Form
-function toggleAddForm() {
-    const form = document.getElementById('addCanteenForm');
-    const btn = document.getElementById('addCanteenBtn');
+function showComingSoon(feature) {
+    let message = 'Full menu with prices and images will be available soon!\n\n';
+    message += 'This feature will include:\n';
+    message += '• Detailed menu with photos\n';
+    message += '• Prices for all items\n';
+    message += '• Daily specials and combos\n';
+    message += '• Nutritional information\n';
+    message += '\nStay tuned for updates!';
     
-    if (form.style.display === 'none' || form.style.display === '') {
-        form.style.display = 'block';
-        btn.style.display = 'none';
-        // Scroll to form
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-        form.style.display = 'none';
-        btn.style.display = 'block';
-        // Reset form
-        document.getElementById('canteenForm').reset();
-    }
+    alert(message);
 }
 
-// Delete Canteen Function
-function deleteCanteen(canteenId, canteenName) {
-    if (confirm(`Are you sure you want to delete "${canteenName}"?`)) {
-        fetch(`{{ url_for('delete_canteen', canteen_id=0) }}`.replace('0', canteenId), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Canteen deleted successfully', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                showAlert('Error deleting canteen: ' + data.error, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error deleting canteen', 'error');
-        });
-    }
-}
-
-// Form Submission Handler
-document.getElementById('canteenForm').addEventListener('submit', function(e) {
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    
-    // Show loading state
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-    submitBtn.disabled = true;
-    
-    // Reset on any error
-    setTimeout(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }, 10000);
+// Smooth scroll for internal links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
 });
 
-// Alert function
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto dismiss after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
 
-// Hide form on page load
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('addCanteenForm').style.display = 'none';
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease-out';
+        observer.observe(card);
+    });
 });
 </script>
 {% endblock %}
