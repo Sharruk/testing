@@ -33,9 +33,9 @@
                     <div class="mb-3">
                         <i class="fas fa-shield-alt fa-3x text-primary"></i>
                     </div>
-                    <h4>Verify Your SSN Email</h4>
+                    <h4>Verify Your Email</h4>
                     <p class="text-muted">
-                        To upload materials and contribute to the college portal, please verify your SSN email address. 
+                        To upload materials and contribute to the college portal, please verify your email address. 
                         We'll send you a 6-digit verification code to ensure secure access.
                     </p>
                 </div>
@@ -45,7 +45,7 @@
                     
                     <div class="mb-4">
                         <label for="email" class="form-label">
-                            <i class="fas fa-envelope me-2"></i>SSN Email Address
+                            <i class="fas fa-envelope me-2"></i>Email Address
                         </label>
                         <div class="input-group">
                             <span class="input-group-text">
@@ -56,18 +56,16 @@
                                 class="form-control form-control-lg" 
                                 id="email" 
                                 name="email" 
-                                placeholder="yourname@ssn.edu.in"
-                                pattern=".+@ssn\.edu\.in"
-                                title="Please enter a valid @ssn.edu.in email address"
+                                placeholder="yourname@ssn.edu.in or admin@example.com"
                                 required
                             >
                             <div class="invalid-feedback">
-                                Please enter a valid @ssn.edu.in email address.
+                                Please enter a valid email address.
                             </div>
                         </div>
                         <div class="form-text">
                             <i class="fas fa-info-circle me-1"></i>
-                            Only @ssn.edu.in email addresses are allowed for contributor access.
+                            Enter your @ssn.edu.in email for contributor access, or admin email for full access.
                         </div>
                     </div>
 
@@ -117,11 +115,7 @@
         var validation = Array.prototype.filter.call(forms, function(form) {
             form.addEventListener('submit', function(event) {
                 var email = form.querySelector('#email');
-                if (!email.value.endsWith('@ssn.edu.in')) {
-                    email.setCustomValidity('Please enter a valid @ssn.edu.in email address');
-                } else {
-                    email.setCustomValidity('');
-                }
+                email.setCustomValidity('');
                 
                 if (form.checkValidity() === false) {
                     event.preventDefault();
