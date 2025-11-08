@@ -86,7 +86,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)  # Display name from Google
     email = db.Column(db.String(120), unique=True, nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='guest')  # 'contributor' or 'guest'
+    role = db.Column(db.String(20), nullable=False, default='guest')  # 'admin', 'contributor', or 'guest'
     
     # OTP verification fields
     otp_hash = db.Column(db.String(64), nullable=True)  # SHA256 hash of OTP
@@ -108,6 +108,10 @@ class User(UserMixin, db.Model):
         # Default role is 'guest', contributors are verified via OTP
         if 'role' not in kwargs:
             self.role = 'guest'
+    
+    @property
+    def is_admin(self):
+        return self.role == 'admin'
     
     @property
     def is_contributor(self):
@@ -189,9 +193,9 @@ class User(UserMixin, db.Model):
         days_left = (expiry_date - datetime.utcnow()).days
         return max(0, days_left)
     
-    def mark_verified(self, ssn_email):
+    def mark_verified(self, ssn_email, role='contributor'):
         """Mark user as verified with SSN email and update timestamps"""
-        self.role = 'contributor'
+        self.role = role
         self.ssn_email = ssn_email
         self.last_verified_at = datetime.utcnow()
         self.last_login_at = datetime.utcnow()

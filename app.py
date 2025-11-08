@@ -50,24 +50,49 @@ login_manager.login_message_category = 'info'
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 
+# Admin configuration
+ADMIN_EMAILS = ['sharruk.cse@gmail.com']
+
+def get_user_role(email):
+    """Determine user role based on email"""
+    if email in ADMIN_EMAILS:
+        return 'admin'
+    elif email.endswith('@ssn.edu.in'):
+        return 'contributor'
+    else:
+        return 'guest'
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Role-based access decorators
+def admin_required(f):
+    """Decorator to require admin access"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('upload_service'))
+        if not current_user.is_admin:
+            flash('This page is only accessible to administrators.', 'error')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def contributor_required(f):
-    """Decorator to require contributor access (SSN email) with re-verification check"""
+    """Decorator to require contributor or admin access with re-verification check"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please verify your email to upload files.', 'warning')
             return redirect(url_for('upload_service'))
-        if not current_user.is_contributor:
-            flash('Uploads are limited to verified SSN accounts (@ssn.edu.in).', 'warning')
+        if not (current_user.is_contributor or current_user.is_admin):
+            flash('Uploads are limited to verified SSN accounts or admins.', 'warning')
             return redirect(url_for('index'))
         
-        # Check if re-verification is required
-        if current_user.is_verification_expired():
+        # Check if re-verification is required (skip for admin who verifies every login)
+        if not current_user.is_admin and current_user.is_verification_expired():
             days_expired = (datetime.utcnow() - current_user.last_verified_at).days if current_user.last_verified_at else 999
             flash(f'Your verification expired {days_expired} days ago. Please re-verify your SSN email to continue uploading.', 'warning')
             return redirect(url_for('verify_ssn_email'))
@@ -76,7 +101,7 @@ def contributor_required(f):
     return decorated_function
 
 def guest_or_contributor_required(f):
-    """Decorator to require any authenticated user (guest or contributor)"""
+    """Decorator to require any authenticated user (guest, contributor, or admin)"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
@@ -125,6 +150,11 @@ def guest_login():
             flash('Please enter a valid email address.', 'error')
             return render_template('guest_login.html')
         
+        # SECURITY: Admin emails must use upload_service for OTP verification
+        if email in ADMIN_EMAILS:
+            flash('Admin accounts require OTP verification for security. Please use the admin login.', 'warning')
+            return redirect(url_for('upload_service'))
+        
         # SECURITY: Reject SSN emails entirely - they must use upload_service for OTP verification
         if email.endswith('@ssn.edu.in'):
             flash('SSN email addresses must verify through the OTP system for security. Please use the contributor login.', 'warning')
@@ -139,8 +169,9 @@ def guest_login():
             user = User.query.filter_by(email=email).first()
             
             if not user:
-                # Create new non-SSN guest user
-                user = User(name=name, email=email, role='guest')
+                # Create new user with correct role
+                assigned_role = get_user_role(email)
+                user = User(name=name, email=email, role=assigned_role)
                 flash_message = f'Welcome {name}! You have guest access to browse and download materials.'
                 
                 db.session.add(user)
@@ -191,9 +222,9 @@ def quick_login():
             
             if user:
                 # User exists - redirect to appropriate verification flow
-                if user.is_contributor and not user.is_verification_expired():
-                    # Active contributor - require OTP verification for security
-                    flash('Please verify your SSN email to access your contributor account.', 'info')
+                if user.is_admin or (user.is_contributor and not user.is_verification_expired()):
+                    # Admin or active contributor - require OTP verification for security
+                    flash('Please verify your email to access your account.', 'info')
                     return redirect(url_for('upload_service'))
                     
                 elif user.is_contributor and user.is_verification_expired():
@@ -208,9 +239,9 @@ def quick_login():
                     return redirect(url_for('guest_login'))
             else:
                 # No existing user
-                if email.endswith('@ssn.edu.in'):
-                    # SSN email - redirect to verification process
-                    flash('Please verify your SSN email to get contributor access.', 'info')
+                if email in ADMIN_EMAILS or email.endswith('@ssn.edu.in'):
+                    # Admin or SSN email - redirect to verification process
+                    flash('Please verify your email to get access.', 'info')
                     return redirect(url_for('upload_service'))
                 else:
                     # Non-SSN email - redirect to guest registration
@@ -232,7 +263,7 @@ def clear_session_email():
 
 @app.route('/upload-service', methods=['GET', 'POST'])
 def upload_service():
-    """Upload service with OTP verification for contributors"""
+    """Upload service with OTP verification for contributors and admins"""
     if request.method == 'GET':
         # Show upload service page
         return render_template('upload_service.html')
@@ -240,9 +271,14 @@ def upload_service():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         
-        # Validate email format and domain
-        if not email or not email.endswith('@ssn.edu.in'):
-            flash('Please enter a valid @ssn.edu.in email address.', 'error')
+        # Validate email format
+        if not email or '@' not in email:
+            flash('Please enter a valid email address.', 'error')
+            return render_template('upload_service.html')
+        
+        # Check if email is admin or SSN
+        if email not in ADMIN_EMAILS and not email.endswith('@ssn.edu.in'):
+            flash('Please enter a valid @ssn.edu.in email address or admin email.', 'error')
             return render_template('upload_service.html')
         
         try:
@@ -258,12 +294,18 @@ def upload_service():
                     flash('Your verification has expired. Please complete re-verification below.', 'info')
                 # For all existing users (verified or not), require OTP verification for security
             
-            # Check if user exists with this email, if not create a temporary one
+            # Check if user exists with this email, if not create one with correct role
             user = User.query.filter_by(email=email).first()
             if not user:
-                # Create a temporary user for the upload session
-                user = User(name=email.split('@')[0].title(), email=email, role='guest')
+                # Determine role based on email and create user
+                initial_role = get_user_role(email)
+                user = User(name=email.split('@')[0].title(), email=email, role=initial_role)
                 db.session.add(user)
+            else:
+                # Existing user - ensure role matches current policy
+                correct_role = get_user_role(email)
+                if user.role != correct_role:
+                    user.role = correct_role
             
             # Generate and send OTP
             otp = user.generate_otp()
@@ -320,9 +362,13 @@ def upload_service_verify():
                 return render_template('upload_service_verify.html')
             
             if user.verify_otp(otp):
-                # OTP verified, promote to contributor for this session
+                # OTP verified, assign role based on email
                 email = session['upload_email']
-                user.promote_to_contributor(email)
+                assigned_role = get_user_role(email)
+                
+                # Update user role explicitly and then mark as verified
+                user.role = assigned_role
+                user.mark_verified(email, role=assigned_role)
                 
                 # Clear upload session data
                 session.pop('upload_pending', None)
@@ -337,8 +383,16 @@ def upload_service_verify():
                 # Log the user in with persistent session
                 login_user(user, remember=True)
                 
-                flash('Email verified successfully! You now have contributor access and can upload files.', 'success')
-                return redirect(url_for('upload'))
+                # Redirect based on role
+                if user.is_admin:
+                    flash('Email verified successfully! Welcome, Admin.', 'success')
+                    return redirect(url_for('admin_dashboard'))
+                elif user.is_contributor:
+                    flash('Email verified successfully! You now have contributor access and can upload files.', 'success')
+                    return redirect(url_for('index'))
+                else:
+                    flash('Email verified successfully!', 'success')
+                    return redirect(url_for('index'))
             else:
                 db.session.commit()  # Save failed attempt count
                 remaining = max(0, 5 - user.otp_attempts)
@@ -658,6 +712,28 @@ def get_file_size(filepath):
 def index():
     """Homepage showing main sections: Question Papers and Syllabus"""
     return render_template('index.html')
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard with management features"""
+    # Get statistics
+    total_users = User.query.count()
+    total_contributors = User.query.filter_by(role='contributor').count()
+    total_guests = User.query.filter_by(role='guest').count()
+    total_files = File.query.count()
+    total_subjects = Subject.query.count()
+    
+    # Get recent users
+    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+    
+    return render_template('admin_dashboard.html',
+                         total_users=total_users,
+                         total_contributors=total_contributors,
+                         total_guests=total_guests,
+                         total_files=total_files,
+                         total_subjects=total_subjects,
+                         recent_users=recent_users)
 
 @app.route('/materials')
 def materials_home():
@@ -2063,13 +2139,10 @@ def club_screenshot(filename):
         return f"Error serving file: {str(e)}", 500
 
 @app.route('/admin/clubs/delete/<int:club_id>', methods=['POST'])
-@contributor_required
+@admin_required
 def delete_club(club_id):
     """Delete a club (admin only)"""
-    try:
-        # Simple admin check
-        if request.args.get('admin') != 'true':
-            return jsonify({'success': False, 'error': 'Admin access required'}), 403
+    try
         
         clubs_data = load_clubs_data()
         clubs = clubs_data.get('clubs', [])
