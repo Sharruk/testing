@@ -2448,9 +2448,14 @@ def add_canteen():
     try:
         canteen_name = request.form.get('canteen_name', '').strip()
         canteen_description = request.form.get('canteen_description', '').strip()
+        canteen_maps_link = request.form.get('canteen_maps_link', '').strip()
         
         if not canteen_name:
             flash('Canteen name is required', 'error')
+            return redirect(url_for('canteen'))
+        
+        if not canteen_maps_link:
+            flash('Google Maps link is required', 'error')
             return redirect(url_for('canteen'))
         
         # Handle file upload
@@ -2490,6 +2495,7 @@ def add_canteen():
             'id': data.get('next_id', 1),
             'name': canteen_name,
             'description': canteen_description,
+            'maps_link': canteen_maps_link,
             'photo_filename': filename,
             'photo_path': file_path,
             'date_added': datetime.now().isoformat()

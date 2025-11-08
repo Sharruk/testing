@@ -60,3 +60,31 @@ Preferred communication style: Simple, everyday language.
 ### Development Environment
 - **Replit Configuration**: Multi-language support (Python 3.11, Node.js 20, web modules).
 - **Nix Packages**: System-level dependencies.
+
+## Deployment Strategy
+
+### Current Deployment
+- **Platform**: Replit with autoscale deployment target
+- **Server**: Gunicorn binding to 0.0.0.0:5000
+- **Port Mapping**: Internal 5000 → External 80
+- **Process Management**: Replit workflows with automatic restart and reload capabilities
+
+### Production Considerations
+- **Database Migration**: Prepared SQLAlchemy models for PostgreSQL migration
+- **File Storage**: Current local storage can be migrated to cloud storage (AWS S3, etc.)
+- **Environment Variables**: Session secret and database URL configuration
+- **Scaling**: Stateless design allows horizontal scaling with shared storage
+
+### Security Measures
+- **File Upload**: Werkzeug secure filename handling
+- **Input Validation**: Form validation for all user inputs
+- **Session Security**: Configurable secret key for session management
+- **OTP Verification**: SHA256 hashed 6-digit codes with 10-minute expiry, 5-attempt rate limiting, 15-minute lockouts
+- **Email Verification**: Secure @ssn.edu.in domain verification with unique constraint enforcement
+- **Role-Based Access**: Database-driven contributor permissions replacing domain-based detection
+
+## Changelog
+
+- November 8, 2025. **SSN Canteen Form Update**: Restored "Add New Canteen" form at the top of the page with updated fields - added Google Maps Link field (required), kept Canteen Name (required), Description (optional), and Photo Upload (JPG/PNG only, required), removed Popular Items section per user request, maintained all existing sections (About, Operating Hours, Location with Google Maps button, View Menu & Prices button, Coming Soon features), updated backend to capture and store maps_link field in canteen.json, preserved green food theme and mobile responsive design
+- November 8, 2025. **SSN Canteen MVP Update**: Redesigned canteen page to comprehensive MVP version - added About section with canteen description and feature highlights (hygienic food, affordable prices, variety menu), implemented detailed Operating Hours section with breakfast/lunch/snacks timings, integrated Google Maps navigation button for location access, created Popular Items showcase with 4 student favorites (Masala Dosa, Chicken Biriyani, Paneer Paratha, Filter Coffee), added "View Menu & Prices" button placeholder for future food website integration, built Coming Soon section featuring 6 planned features (Ratings & Reviews, Discussion Forum, Live Crowd Status, Pre-Order System, Nutritional Info, Daily Specials Board), added smooth animations and hover effects, implemented admin management section for contributors, modern gradient design with responsive layout
+- November 8, 2025. **Replit Import Update**: Refreshed Replit environment setup - installed Python 3.11 with all required dependencies (Flask 3.1+, SQLAlchemy 2.0+, psycopg2-binary, Gunicorn, Flask-Login, Flask-Mail, etc.), configured Flask development workflow on port 5000 with 0.0.0.0 binding and webview output, set up autoscale deployment with Gunicorn (2 workers, port 5000, reuse-port enabled), updated .gitignore to preserve Replit config files, verified server running successfully with all routes accessible

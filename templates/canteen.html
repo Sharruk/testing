@@ -20,6 +20,86 @@
         </div>
     </div>
 
+    <!-- Add Canteen Button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button type="button" class="btn btn-success btn-lg" id="addCanteenBtn" onclick="toggleAddForm()">
+                <i class="fas fa-plus me-2"></i>Add New Canteen
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Canteen Form (Hidden by default) -->
+    <div class="row mb-4" id="addCanteenForm" style="display: none;">
+        <div class="col-12">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>Add New Canteen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('add_canteen') }}" method="post" enctype="multipart/form-data" id="canteenForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="row">
+                            <!-- Canteen Name -->
+                            <div class="col-md-6 mb-3">
+                                <label for="canteen_name" class="form-label fw-bold">
+                                    Canteen Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="canteen_name" name="canteen_name" 
+                                       placeholder="e.g., Main Cafeteria, Food Court, etc." required>
+                            </div>
+                            
+                            <!-- Google Maps Link -->
+                            <div class="col-md-6 mb-3">
+                                <label for="canteen_maps_link" class="form-label fw-bold">
+                                    Google Maps Link <span class="text-danger">*</span>
+                                </label>
+                                <input type="url" class="form-control" id="canteen_maps_link" name="canteen_maps_link" 
+                                       placeholder="https://maps.google.com/?q=..." required>
+                                <div class="form-text">Paste the Google Maps URL for this canteen location</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="canteen_description" class="form-label fw-bold">
+                                Description <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea class="form-control" id="canteen_description" name="canteen_description" rows="3" 
+                                      placeholder="Brief description about this canteen, its specialties, location, etc."></textarea>
+                        </div>
+                        
+                        <!-- Photo Upload -->
+                        <div class="mb-3">
+                            <label for="canteen_photo" class="form-label fw-bold">
+                                Canteen Photo <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" class="form-control" id="canteen_photo" name="canteen_photo" 
+                                   accept=".jpg,.jpeg,.png" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Supported formats: JPG, PNG (Front view of the canteen recommended)
+                            </div>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-plus me-2"></i>Add Canteen
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- About Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -143,86 +223,6 @@
                         <small class="text-muted">
                             <i class="fas fa-route me-1"></i>Get directions from anywhere on campus
                         </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Popular Items Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="card-title text-success mb-4">
-                        <i class="fas fa-fire me-2"></i>Popular Items
-                    </h3>
-                    <p class="text-muted mb-4">Student favorites that keep everyone coming back!</p>
-                    
-                    <div class="row g-3">
-                        <!-- Popular Item 1 -->
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card border-success h-100 popular-item">
-                                <div class="card-body text-center">
-                                    <div class="item-icon mb-3">
-                                        <i class="fas fa-cheese fa-3x text-success"></i>
-                                    </div>
-                                    <h5 class="card-title mb-2">Masala Dosa</h5>
-                                    <p class="text-muted small mb-2">Crispy & delicious</p>
-                                    <div class="badge bg-success-subtle text-success">
-                                        <i class="fas fa-star me-1"></i>Most Popular
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Popular Item 2 -->
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card border-success h-100 popular-item">
-                                <div class="card-body text-center">
-                                    <div class="item-icon mb-3">
-                                        <i class="fas fa-drumstick-bite fa-3x text-success"></i>
-                                    </div>
-                                    <h5 class="card-title mb-2">Chicken Biriyani</h5>
-                                    <p class="text-muted small mb-2">Aromatic & flavorful</p>
-                                    <div class="badge bg-success-subtle text-success">
-                                        <i class="fas fa-heart me-1"></i>Fan Favorite
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Popular Item 3 -->
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card border-success h-100 popular-item">
-                                <div class="card-body text-center">
-                                    <div class="item-icon mb-3">
-                                        <i class="fas fa-bread-slice fa-3x text-success"></i>
-                                    </div>
-                                    <h5 class="card-title mb-2">Paneer Paratha</h5>
-                                    <p class="text-muted small mb-2">Stuffed & tasty</p>
-                                    <div class="badge bg-success-subtle text-success">
-                                        <i class="fas fa-thumbs-up me-1"></i>Top Rated
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Popular Item 4 -->
-                        <div class="col-md-3 col-sm-6">
-                            <div class="card border-success h-100 popular-item">
-                                <div class="card-body text-center">
-                                    <div class="item-icon mb-3">
-                                        <i class="fas fa-coffee fa-3x text-success"></i>
-                                    </div>
-                                    <h5 class="card-title mb-2">Filter Coffee</h5>
-                                    <p class="text-muted small mb-2">Fresh & energizing</p>
-                                    <div class="badge bg-success-subtle text-success">
-                                        <i class="fas fa-bolt me-1"></i>Energy Boost
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -376,37 +376,103 @@
         </div>
     </div>
 
-    <!-- Admin Management Section (Hidden for non-contributors) -->
-    {% if current_user.is_authenticated and current_user.is_contributor %}
-    <div class="row mb-4">
+    <!-- Canteens Display -->
+    <div class="row">
         <div class="col-12">
-            <div class="card border-warning">
-                <div class="card-header bg-warning">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-tools me-2"></i>Admin Management
-                    </h5>
+            {% if canteens %}
+                <h3 class="mb-4">
+                    <i class="fas fa-utensils me-2"></i>All Canteens 
+                    <span class="badge bg-success">{{ canteens|length }}</span>
+                </h3>
+                
+                <div class="row">
+                    {% for canteen in canteens %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm hover-card">
+                            <!-- Canteen Photo -->
+                            <div class="canteen-photo-container" style="height: 250px; overflow: hidden;">
+                                <img src="{{ url_for('canteen_photo', filename=canteen.photo_filename) }}" 
+                                     class="card-img-top" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     alt="{{ canteen.name }}"
+                                     loading="lazy">
+                            </div>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title text-success mb-3">
+                                    <i class="fas fa-utensils me-2"></i>{{ canteen.name }}
+                                </h5>
+                                
+                                {% if canteen.description %}
+                                <p class="card-text text-muted mb-3">{{ canteen.description }}</p>
+                                {% endif %}
+                                
+                                <!-- Google Maps Link -->
+                                {% if canteen.maps_link %}
+                                <div class="mb-3">
+                                    <a href="{{ canteen.maps_link }}" target="_blank" class="btn btn-outline-success btn-sm w-100">
+                                        <i class="fas fa-map-marker-alt me-2"></i>View on Google Maps
+                                        <i class="fas fa-external-link-alt ms-2 small"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Date Added -->
+                                <div class="small text-muted mb-3">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Added: {{ canteen.date_added[:10] if canteen.date_added else 'Unknown' }}
+                                </div>
+                            </div>
+                            
+                            <!-- Admin Delete Button -->
+                            <div class="card-footer bg-white">
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-outline-danger btn-sm" 
+                                            onclick="deleteCanteen({{ canteen.id }}, '{{ canteen.name }}')">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                <div class="card-body">
-                    <p class="text-muted">Administrative tools for managing canteen information</p>
-                    <a href="#" onclick="alert('Admin features coming soon! This will allow editing hours, menu items, and other canteen details.'); return false;" class="btn btn-warning">
-                        <i class="fas fa-edit me-2"></i>Edit Canteen Details
-                    </a>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Canteens Available</h4>
+                            <p class="text-muted">Click the "Add New Canteen" button above to add the first canteen.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>
 
 <style>
-.popular-item {
-    transition: all 0.3s ease;
-    cursor: default;
+.hover-card {
+    transition: all 0.3s ease-in-out;
 }
 
-.popular-item:hover {
+.hover-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.canteen-photo-container {
+    position: relative;
+    background: #f8f9fa;
+}
+
+.canteen-photo-container img {
+    transition: transform 0.3s ease;
+}
+
+.hover-card:hover .canteen-photo-container img {
+    transform: scale(1.05);
 }
 
 .coming-soon-item {
@@ -460,6 +526,90 @@
 </style>
 
 <script>
+// Toggle Add Form
+function toggleAddForm() {
+    const form = document.getElementById('addCanteenForm');
+    const btn = document.getElementById('addCanteenBtn');
+    
+    if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+        btn.style.display = 'none';
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        form.style.display = 'none';
+        btn.style.display = 'block';
+        document.getElementById('canteenForm').reset();
+    }
+}
+
+// Delete Canteen Function
+function deleteCanteen(canteenId, canteenName) {
+    if (confirm(`Are you sure you want to delete "${canteenName}"?`)) {
+        fetch(`{{ url_for('delete_canteen', canteen_id=0) }}`.replace('0', canteenId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Canteen deleted successfully', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showAlert('Error deleting canteen: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error deleting canteen', 'error');
+        });
+    }
+}
+
+// Form Submission Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('canteenForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 10000);
+        });
+    }
+    
+    document.getElementById('addCanteenForm').style.display = 'none';
+});
+
+// Alert function
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Coming Soon Alert
 function showComingSoon(feature) {
     let message = 'Full menu with prices and images will be available soon!\n\n';
     message += 'This feature will include:\n';
