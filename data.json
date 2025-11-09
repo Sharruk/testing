@@ -514,6 +514,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 14,
+      "filename": "Testing_file.docx",
+      "original_filename": "Testing file.docx",
+      "custom_filename": "Testing_file.docx",
+      "course_type": "pg",
+      "department": "mtech_cse",
+      "semester": "4",
+      "category": "ESE",
+      "subject": "AI",
+      "description": "",
+      "size": "11.0 KB",
+      "upload_date": "2025-11-08 18:49:43",
+      "file_path": "uploads/Testing_file.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
