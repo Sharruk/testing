@@ -1434,11 +1434,24 @@ def upload():
                         ).first()
                         
                         if not db_subject:
+                            # Generate subject code from name (e.g., "UHV" -> "UHV101" or similar)
+                            subject_code = subject.upper().replace(' ', '')[:10]
+                            subject_code = f"{subject_code}{semester}{category[:3]}"
+                            
+                            # Ensure uniqueness by checking and appending counter if needed
+                            counter = 1
+                            base_code = subject_code
+                            while Subject.query.filter_by(code=subject_code).first():
+                                subject_code = f"{base_code}_{counter}"
+                                counter += 1
+                            
                             db_subject = Subject(
+                                code=subject_code,
                                 name=subject,
                                 course_type=normalized_course_type,
                                 department=normalized_department,
-                                semester=semester
+                                semester=semester,
+                                category=category
                             )
                             db.session.add(db_subject)
                             db.session.flush()  # Get the ID
@@ -1448,15 +1461,17 @@ def upload():
                             filename=filename,
                             original_filename=file.filename,
                             custom_filename=custom_filename or filename,
-                            file_path=filepath,
-                            file_size=get_file_size(filepath),
+                            course_type=normalized_course_type,
+                            department=normalized_department,
+                            semester=semester,
                             category=category,
-                            description=description,
                             subject_id=db_subject.id,
-                            uploader_id=session.get('user_id'),
-                            verified=False,  # Not verified yet - only contributors/admins can see
-                            likes=0,
-                            dislikes=0
+                            subject_name=subject,
+                            file_path=filepath,
+                            size=get_file_size(filepath),
+                            uploader_id=current_user.id if current_user.is_authenticated else None,
+                            uploader_email=current_user.email if current_user.is_authenticated else None,
+                            verified=False
                         )
                         db.session.add(db_file)
                         db.session.commit()
