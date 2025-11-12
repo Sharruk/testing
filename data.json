@@ -568,6 +568,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 17,
+      "filename": "UHV_Assignment_-_I_3.pdf",
+      "original_filename": "UHV Assignment - I (3).pdf",
+      "custom_filename": "UHV_Assignment_-_I_3.pdf",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "ESE",
+      "subject": "UHV",
+      "description": "",
+      "size": "167.5 KB",
+      "upload_date": "2025-11-12 07:32:55",
+      "file_path": "uploads/UHV_Assignment_-_I_3.pdf",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
