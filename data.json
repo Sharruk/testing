@@ -586,6 +586,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 18,
+      "filename": "path_planning.docx",
+      "original_filename": "path planning.docx",
+      "custom_filename": "path_planning.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "ESE",
+      "subject": "UHV",
+      "description": "",
+      "size": "21.0 KB",
+      "upload_date": "2025-11-12 07:37:30",
+      "file_path": "uploads/path_planning.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
