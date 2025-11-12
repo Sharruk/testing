@@ -3381,7 +3381,7 @@ def delete_file_api(file_id):
 
 @app.route('/api/files/report/<int:file_id>', methods=['POST'])
 @contributor_required
-def report_file(file_id):
+def report_file_api(file_id):
     """Report a file for review"""
     try:
         file = File.query.get(file_id)
