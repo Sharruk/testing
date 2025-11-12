@@ -1423,6 +1423,51 @@ def upload():
                     data['files'].append(file_data)
                     save_data(data)
                     
+                    # Save to database for role-based visibility
+                    try:
+                        # Get or create subject
+                        db_subject = Subject.query.filter_by(
+                            name=subject,
+                            course_type=normalized_course_type,
+                            department=normalized_department,
+                            semester=semester
+                        ).first()
+                        
+                        if not db_subject:
+                            db_subject = Subject(
+                                name=subject,
+                                course_type=normalized_course_type,
+                                department=normalized_department,
+                                semester=semester
+                            )
+                            db.session.add(db_subject)
+                            db.session.flush()  # Get the ID
+                        
+                        # Create file record with verified=False (visible to contributors/admins only)
+                        db_file = File(
+                            filename=filename,
+                            original_filename=file.filename,
+                            custom_filename=custom_filename or filename,
+                            file_path=filepath,
+                            file_size=get_file_size(filepath),
+                            category=category,
+                            description=description,
+                            subject_id=db_subject.id,
+                            uploader_id=session.get('user_id'),
+                            verified=False,  # Not verified yet - only contributors/admins can see
+                            likes=0,
+                            dislikes=0
+                        )
+                        db.session.add(db_file)
+                        db.session.commit()
+                        
+                        app.logger.info(f"File saved to database with ID {db_file.id}, verified=False")
+                        
+                    except Exception as db_error:
+                        db.session.rollback()
+                        app.logger.error(f"Database save error: {str(db_error)}")
+                        # Continue even if DB save fails - file is still in JSON
+                    
                     app.logger.info(f"File uploaded successfully: {filename}")
                     try:
                         flash('File uploaded successfully!', 'success')
