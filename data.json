@@ -604,6 +604,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 19,
+      "filename": "Testing_file.docx",
+      "original_filename": "Testing file.docx",
+      "custom_filename": "Testing_file.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "4",
+      "category": "ESE",
+      "subject": "testing ",
+      "description": "",
+      "size": "11.0 KB",
+      "upload_date": "2025-11-12 07:41:05",
+      "file_path": "uploads/Testing_file.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
