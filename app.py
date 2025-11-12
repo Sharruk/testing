@@ -820,23 +820,40 @@ def semester(course_type_id, dept_id, semester_id):
 
 @app.route('/category/<course_type_id>/<dept_id>/<semester_id>/<category>')
 def category_view(course_type_id, dept_id, semester_id, category):
-    """Category page showing downloadable files"""
+    """Category page showing downloadable files with role-based visibility"""
     data = load_data()
     if (course_type_id not in data['course_types'] or 
         dept_id not in data['course_types'][course_type_id]['departments']):
         flash('Department not found', 'error')
         return redirect(url_for('index'))
     
-    # Filter files for this specific category (case-insensitive matching)
-    # Also filter out files that are hidden due to reports
-    filtered_files = [
-        f for f in data['files'] 
-        if f['course_type'].lower() == course_type_id.lower() and
-           f['department'].lower() == dept_id.lower() and 
-           f['semester'] == semester_id and 
-           f['category'].upper() == category.upper() and
-           not is_file_hidden(f['id'], 'QP')  # Hide reported files
-    ]
+    try:
+        # Query database for files matching this category
+        db_files = File.query.filter_by(
+            course_type=course_type_id,
+            department=dept_id,
+            semester=semester_id,
+            category=category.upper()
+        ).order_by(File.upload_date.desc()).all()
+        
+        # Apply role-based visibility filtering
+        visible_files = [f for f in db_files if is_file_visible_to_user(f)]
+        
+        # Convert to dict for template compatibility
+        filtered_files = [f.to_dict() for f in visible_files]
+        
+    except Exception as e:
+        app.logger.error(f"Error querying database for category view: {str(e)}")
+        # Fallback to JSON data
+        filtered_files = [
+            f for f in data.get('files', []) 
+            if f['course_type'].lower() == course_type_id.lower() and
+               f['department'].lower() == dept_id.lower() and 
+               f['semester'] == semester_id and 
+               f['category'].upper() == category.upper() and
+               is_file_visible_to_user(f) and
+               not is_file_hidden(f['id'], 'QP')
+        ]
     
     course_data = data['course_types'][course_type_id]
     department_data = course_data['departments'][dept_id]
@@ -852,7 +869,7 @@ def category_view(course_type_id, dept_id, semester_id, category):
 
 @app.route('/api/search')
 def api_search():
-    """API endpoint for global search"""
+    """API endpoint for global search with role-based visibility"""
     try:
         # Get search parameters
         query = request.args.get('q', '').strip()
@@ -862,48 +879,37 @@ def api_search():
         category = request.args.get('category', '').strip()
         file_type = request.args.get('file_type', '').strip()
         
-        # For now, use JSON data until database is fully migrated
-        data = load_data()
-        all_files = data.get('files', [])
+        # Build database query
+        db_query = File.query
         
         # Apply filters
-        filtered_files = []
-        for file in all_files:
-            # Text search
-            if query:
-                subject_name = (file.get('subject') or '').lower()
-                filename = (file.get('custom_filename') or '').lower()
-                if query.lower() not in subject_name and query.lower() not in filename:
-                    continue
-            
-            # Course type filter
-            if course_type and file.get('course_type', '').upper() != course_type.upper():
-                continue
-                
-            # Department filter
-            if department and file.get('department', '').lower() != department.lower():
-                continue
-                
-            # Semester filter
-            if semester and str(file.get('semester', '')) != semester:
-                continue
-                
-            # Category filter
-            if category and file.get('category', '').upper() != category.upper():
-                continue
-                
-            # File type filter (assume QP for now)
-            if file_type and file_type != 'QP':
-                continue
-            
-            # Add file type for display
-            file['file_type'] = 'QP'
-            file['subject_code'] = None  # Will be populated when subjects are linked
-            
-            filtered_files.append(file)
+        if course_type:
+            db_query = db_query.filter(File.course_type.ilike(course_type))
+        if department:
+            db_query = db_query.filter(File.department.ilike(department))
+        if semester:
+            db_query = db_query.filter_by(semester=semester)
+        if category:
+            db_query = db_query.filter(File.category.ilike(category))
         
-        # Limit results for performance
-        results = filtered_files[:50]
+        # Text search on subject_name and custom_filename
+        if query:
+            search_pattern = f'%{query}%'
+            db_query = db_query.filter(
+                db.or_(
+                    File.subject_name.ilike(search_pattern),
+                    File.custom_filename.ilike(search_pattern)
+                )
+            )
+        
+        # Execute query
+        all_files = db_query.order_by(File.upload_date.desc()).limit(100).all()
+        
+        # Apply role-based visibility filtering
+        visible_files = [f for f in all_files if is_file_visible_to_user(f)]
+        
+        # Convert to dict and limit results
+        results = [f.to_dict() for f in visible_files[:50]]
         
         return jsonify({
             'success': True,
@@ -1093,6 +1099,27 @@ def save_reports_data(data):
     except Exception as e:
         app.logger.error(f"Error saving reports data: {str(e)}")
         raise
+
+def is_file_visible_to_user(file_obj):
+    """
+    Check if a file should be visible to the current user based on their role.
+    
+    Rules:
+    - Guests: Only see verified files
+    - Contributors: See all files (verified or not)
+    - Admins: See all files (verified or not)
+    - Unauthenticated users: Only see verified files (treated as guests)
+    """
+    if not current_user.is_authenticated:
+        # Unauthenticated users only see verified files
+        return file_obj.verified if hasattr(file_obj, 'verified') else file_obj.get('verified', False)
+    
+    # Admins and contributors see all files
+    if current_user.is_admin or current_user.is_contributor:
+        return True
+    
+    # Guests only see verified files
+    return file_obj.verified if hasattr(file_obj, 'verified') else file_obj.get('verified', False)
 
 def is_file_hidden(file_id, file_type='QP'):
     """Check if a file should be hidden due to reports"""
