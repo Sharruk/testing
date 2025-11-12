@@ -1280,9 +1280,23 @@ def highlight_search_terms(file, query):
 
 @app.route('/search')
 def search():
-    """Search page for all files"""
-    data = load_data()
-    all_files = data.get('files', [])
+    """Search page for all files with role-based visibility"""
+    try:
+        # Query database for all files
+        db_files = File.query.order_by(File.upload_date.desc()).all()
+        
+        # Apply role-based visibility filtering
+        visible_files = [f for f in db_files if is_file_visible_to_user(f)]
+        
+        # Convert to dict for template compatibility
+        all_files = [f.to_dict() for f in visible_files]
+        
+    except Exception as e:
+        app.logger.error(f"Error querying database for search page: {str(e)}")
+        # Fallback to JSON data
+        data = load_data()
+        json_files = data.get('files', [])
+        all_files = [f for f in json_files if is_file_visible_to_user(f)]
     
     return render_template('search.html', all_files=all_files)
 
