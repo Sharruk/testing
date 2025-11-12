@@ -1560,6 +1560,24 @@ def delete_file(file_id):
 def download(file_id):
     """Download a file"""
     try:
+        # First try database
+        db_file = File.query.get(file_id)
+        
+        if db_file:
+            # Check if file is visible to current user
+            if not is_file_visible_to_user(db_file):
+                flash('File not available', 'error')
+                return redirect(url_for('index'))
+            
+            filepath = db_file.file_path
+            if os.path.exists(filepath) and os.path.isfile(filepath):
+                return send_file(filepath, as_attachment=True, download_name=db_file.custom_filename)
+            else:
+                app.logger.error(f"Database file not found on disk: {filepath}")
+                flash('File not found on disk', 'error')
+                return redirect(url_for('index'))
+        
+        # Fallback to JSON for backward compatibility
         data = load_data()
         file_data = None
         
@@ -1570,6 +1588,11 @@ def download(file_id):
         
         if not file_data:
             flash('File not found', 'error')
+            return redirect(url_for('index'))
+        
+        # Check if file is visible to current user
+        if not is_file_visible_to_user(file_data):
+            flash('File not available', 'error')
             return redirect(url_for('index'))
         
         filepath = file_data['file_path']
