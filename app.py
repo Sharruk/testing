@@ -1110,7 +1110,13 @@ def is_file_visible_to_user(file_obj):
     - Admins: See all files (verified or not)
     - Unauthenticated users: Only see verified files (treated as guests)
     """
-    if not current_user.is_authenticated:
+    # Safely check if user is authenticated
+    try:
+        is_authenticated = current_user and current_user.is_authenticated
+    except AttributeError:
+        is_authenticated = False
+    
+    if not is_authenticated:
         # Unauthenticated users only see verified files
         return file_obj.verified if hasattr(file_obj, 'verified') else file_obj.get('verified', False)
     
