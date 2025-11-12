@@ -532,6 +532,42 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 15,
+      "filename": "Testing_file.docx",
+      "original_filename": "Testing_file.docx",
+      "custom_filename": "Testing_file.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "CAT",
+      "subject": "test",
+      "description": "",
+      "size": "11.0 KB",
+      "upload_date": "2025-11-12 06:03:11",
+      "file_path": "uploads/Testing_file.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
+    },
+    {
+      "id": 16,
+      "filename": "UHVAssignment1_1.pdf",
+      "original_filename": "UHVAssignment1 (1).pdf",
+      "custom_filename": "UHVAssignment1_1.pdf",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "CAT",
+      "subject": "UHV",
+      "description": "",
+      "size": "82.0 KB",
+      "upload_date": "2025-11-12 06:05:56",
+      "file_path": "uploads/UHVAssignment1_1.pdf",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
