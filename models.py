@@ -55,8 +55,17 @@ class File(db.Model):
     file_path = db.Column(db.String(500), nullable=False)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship
+    # Verification and ownership
+    verified = db.Column(db.Boolean, nullable=False, default=False)  # Admin verification status
+    uploader_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    uploader_email = db.Column(db.String(120), nullable=True)  # For tracking
+    verified_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    verified_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
     subject = db.relationship('Subject', backref='files')
+    uploader = db.relationship('User', foreign_keys=[uploader_id], backref='uploaded_files')
+    verified_by = db.relationship('User', foreign_keys=[verified_by_id])
     
     def to_dict(self):
         return {
@@ -74,11 +83,54 @@ class File(db.Model):
             'file_type': self.file_type,
             'size': self.size,
             'file_path': self.file_path,
-            'upload_date': self.upload_date.isoformat() if self.upload_date else None
+            'upload_date': self.upload_date.isoformat() if self.upload_date else None,
+            'verified': self.verified,
+            'uploader_id': self.uploader_id,
+            'uploader_email': self.uploader_email,
+            'uploader_name': self.uploader.name if self.uploader else None,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None
         }
     
     def __repr__(self):
         return f'<File {self.filename}>'
+
+
+class Report(db.Model):
+    __tablename__ = 'reports'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    file_id = db.Column(db.Integer, db.ForeignKey('files.id'), nullable=False)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='Pending')  # Pending, Reviewed, Dismissed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    admin_notes = db.Column(db.Text, nullable=True)
+    
+    # Relationships
+    file = db.relationship('File', backref='reports')
+    reporter = db.relationship('User', foreign_keys=[reporter_id], backref='reported_files')
+    reviewed_by = db.relationship('User', foreign_keys=[reviewed_by_id])
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'file_id': self.file_id,
+            'file': self.file.to_dict() if self.file else None,
+            'reporter_id': self.reporter_id,
+            'reporter_name': self.reporter.name if self.reporter else None,
+            'reporter_email': self.reporter.email if self.reporter else None,
+            'reason': self.reason,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'reviewed_by': self.reviewed_by.name if self.reviewed_by else None,
+            'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+            'admin_notes': self.admin_notes
+        }
+    
+    def __repr__(self):
+        return f'<Report {self.id}: File {self.file_id} by User {self.reporter_id}>'
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'

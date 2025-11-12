@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Subject, File, User
+from models import db, Subject, File, User, Report
 from email_service import email_service
 
 # Configure logging
@@ -3318,6 +3318,227 @@ def event_poster(filename):
     except Exception as e:
         app.logger.error(f"Error serving event poster {filename}: {str(e)}")
         return f"Error serving file: {str(e)}", 500
+
+# File Verification and Reporting API Routes
+
+@app.route('/api/files/verify/<int:file_id>', methods=['POST'])
+@admin_required
+def verify_file(file_id):
+    """Admin route to verify a file"""
+    try:
+        file = File.query.get(file_id)
+        if not file:
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+        
+        file.verified = True
+        file.verified_by_id = current_user.id
+        file.verified_at = datetime.utcnow()
+        db.session.commit()
+        
+        app.logger.info(f"File {file_id} verified by admin {current_user.email}")
+        return jsonify({'success': True, 'message': 'File verified successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error verifying file {file_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/files/delete/<int:file_id>', methods=['POST'])
+@login_required
+def delete_file_api(file_id):
+    """Delete a file - admin can delete any, contributors can delete their own"""
+    try:
+        file = File.query.get(file_id)
+        if not file:
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+        
+        # Check permissions: admin can delete any, contributors can delete their own
+        if not current_user.is_admin and file.uploader_id != current_user.id:
+            return jsonify({'success': False, 'error': 'You can only delete your own files'}), 403
+        
+        # Delete the physical file
+        if os.path.exists(file.file_path):
+            try:
+                os.remove(file.file_path)
+                app.logger.info(f"Deleted file: {file.file_path}")
+            except Exception as e:
+                app.logger.warning(f"Could not delete physical file: {str(e)}")
+        
+        # Delete all reports associated with this file
+        Report.query.filter_by(file_id=file_id).delete()
+        
+        # Delete the database record
+        db.session.delete(file)
+        db.session.commit()
+        
+        app.logger.info(f"File {file_id} deleted by {current_user.email}")
+        return jsonify({'success': True, 'message': 'File deleted successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error deleting file {file_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/files/report/<int:file_id>', methods=['POST'])
+@contributor_required
+def report_file(file_id):
+    """Report a file for review"""
+    try:
+        file = File.query.get(file_id)
+        if not file:
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+        
+        reason = request.json.get('reason', '').strip()
+        if not reason:
+            return jsonify({'success': False, 'error': 'Reason is required'}), 400
+        
+        # Check if user already reported this file
+        existing_report = Report.query.filter_by(
+            file_id=file_id,
+            reporter_id=current_user.id,
+            status='Pending'
+        ).first()
+        
+        if existing_report:
+            return jsonify({'success': False, 'error': 'You have already reported this file'}), 400
+        
+        # Create new report
+        report = Report(
+            file_id=file_id,
+            reporter_id=current_user.id,
+            reason=reason,
+            status='Pending'
+        )
+        db.session.add(report)
+        db.session.commit()
+        
+        app.logger.info(f"File {file_id} reported by {current_user.email}: {reason}")
+        return jsonify({'success': True, 'message': 'File reported successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error reporting file {file_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/reports', methods=['GET'])
+@admin_required
+def get_reports():
+    """Get all pending reports for admin review"""
+    try:
+        status_filter = request.args.get('status', 'Pending')
+        
+        if status_filter == 'all':
+            reports = Report.query.order_by(Report.created_at.desc()).all()
+        else:
+            reports = Report.query.filter_by(status=status_filter).order_by(Report.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'reports': [report.to_dict() for report in reports]
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error fetching reports: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/reports/<int:report_id>/review', methods=['POST'])
+@admin_required
+def review_report(report_id):
+    """Admin reviews a report - can mark as reviewed or dismiss"""
+    try:
+        report = Report.query.get(report_id)
+        if not report:
+            return jsonify({'success': False, 'error': 'Report not found'}), 404
+        
+        action = request.json.get('action')  # 'dismiss' or 'delete_file'
+        admin_notes = request.json.get('notes', '')
+        
+        if action == 'dismiss':
+            report.status = 'Dismissed'
+            report.reviewed_by_id = current_user.id
+            report.reviewed_at = datetime.utcnow()
+            report.admin_notes = admin_notes
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Report dismissed'})
+            
+        elif action == 'delete_file':
+            # Delete the file and mark report as reviewed
+            file = report.file
+            if file:
+                # Delete physical file
+                if os.path.exists(file.file_path):
+                    try:
+                        os.remove(file.file_path)
+                    except Exception as e:
+                        app.logger.warning(f"Could not delete physical file: {str(e)}")
+                
+                # Mark all reports for this file as reviewed
+                Report.query.filter_by(file_id=file.id).update({
+                    'status': 'Reviewed',
+                    'reviewed_by_id': current_user.id,
+                    'reviewed_at': datetime.utcnow(),
+                    'admin_notes': admin_notes
+                })
+                
+                # Delete the file
+                db.session.delete(file)
+                db.session.commit()
+                
+                return jsonify({'success': True, 'message': 'File deleted and report reviewed'})
+            else:
+                return jsonify({'success': False, 'error': 'File not found'}), 404
+        else:
+            return jsonify({'success': False, 'error': 'Invalid action'}), 400
+            
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error reviewing report {report_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Admin Pages
+
+@app.route('/admin/verify-files')
+@admin_required
+def admin_verify_files():
+    """Admin page to view and verify unverified files"""
+    try:
+        unverified_files = File.query.filter_by(verified=False).order_by(File.upload_date.desc()).all()
+        return render_template('admin/verify_files.html', files=unverified_files)
+    except Exception as e:
+        app.logger.error(f"Error loading verify files page: {str(e)}")
+        flash('Error loading files', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/reported-files')
+@admin_required
+def admin_reported_files():
+    """Admin page to view and manage reported files"""
+    try:
+        pending_reports = Report.query.filter_by(status='Pending').order_by(Report.created_at.desc()).all()
+        return render_template('admin/reported_files.html', reports=pending_reports)
+    except Exception as e:
+        app.logger.error(f"Error loading reported files page: {str(e)}")
+        flash('Error loading reports', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/manage-uploads')
+@contributor_required
+def manage_uploads():
+    """Manage uploads page for contributors and admin"""
+    try:
+        if current_user.is_admin:
+            # Admin sees all files
+            files = File.query.order_by(File.upload_date.desc()).all()
+        else:
+            # Contributors see all files (verified or not)
+            files = File.query.order_by(File.upload_date.desc()).all()
+        
+        return render_template('manage_uploads.html', files=files)
+    except Exception as e:
+        app.logger.error(f"Error loading manage uploads page: {str(e)}")
+        flash('Error loading files', 'error')
+        return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
