@@ -131,7 +131,21 @@
                                     </span></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                {% if current_user.is_contributor %}
+                                {% if current_user.is_admin %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
+                                        <i class="fas fa-tachometer-alt me-1 text-primary"></i> Admin Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_verify_files') }}">
+                                        <i class="fas fa-check-circle me-1 text-success"></i> Verify Files
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_reported_files') }}">
+                                        <i class="fas fa-flag me-1 text-warning"></i> Reported Files
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('manage_uploads') }}">
+                                        <i class="fas fa-folder-open me-1"></i> Manage All Uploads
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% elif current_user.is_contributor %}
                                     {% if current_user.is_verification_expired() %}
                                         <li><a class="dropdown-item text-danger" href="{{ url_for('verify_ssn_email') }}">
                                             <i class="fas fa-exclamation-triangle me-1"></i> Re-verify SSN Email
@@ -151,6 +165,9 @@
                                     {% else %}
                                         <li><a class="dropdown-item" href="{{ url_for('upload') }}">
                                             <i class="fas fa-upload me-1"></i> Upload Files
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('manage_uploads') }}">
+                                            <i class="fas fa-folder-open me-1"></i> Manage My Uploads
                                         </a></li>
                                         <li><span class="dropdown-item-text small text-success">
                                             <i class="fas fa-info-circle me-1"></i>
