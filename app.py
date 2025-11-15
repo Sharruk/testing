@@ -37,6 +37,10 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=int(os.environ.get('VE
 # Initialize database
 db.init_app(app)
 
+# Create all database tables
+with app.app_context():
+    db.create_all()
+
 # Initialize email service
 email_service.init_app(app)
 
