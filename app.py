@@ -2203,6 +2203,7 @@ def add_club_post():
         club_name = request.form.get('club_name', '').strip()
         description = request.form.get('description', '').strip()
         instagram_link = request.form.get('instagram_link', '').strip()
+        linkedin_link = request.form.get('linkedin_link', '').strip()
         
         if not club_name:
             flash('Club name is required.', 'error')
@@ -2233,6 +2234,7 @@ def add_club_post():
             'name': club_name,
             'description': description if description else None,
             'instagram_link': instagram_link if instagram_link else None,
+            'linkedin_link': linkedin_link if linkedin_link else None,
             'instagram_screenshot': screenshot_filename,
             'created_at': datetime.now().isoformat()
         }
