@@ -37,9 +37,12 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=int(os.environ.get('VE
 # Initialize database
 db.init_app(app)
 
-# Create all database tables
-with app.app_context():
-    db.create_all()
+# Create all database tables (with error handling for disabled endpoints)
+try:
+    with app.app_context():
+        db.create_all()
+except Exception as e:
+    print(f"Warning: Could not create database tables on startup: {e}")
 
 # Initialize email service
 email_service.init_app(app)
@@ -68,7 +71,11 @@ def get_user_role(email):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except Exception as e:
+        logging.warning(f"Could not load user from database: {e}")
+        return None
 
 # Role-based access decorators
 def admin_required(f):
