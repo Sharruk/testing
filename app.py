@@ -1163,15 +1163,61 @@ def report_file(file_id):
         reason = data.get('reason', 'inappropriate_content')
         reporter_ip = request.remote_addr
         
-        # Load reports data
+        # Check if file exists in database
+        db_file = File.query.get(file_id)
+        if not db_file:
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+        
+        # If user is logged in, save to database Report model
+        if current_user.is_authenticated:
+            # Check if user already reported this file
+            existing_report = Report.query.filter_by(
+                file_id=file_id,
+                reporter_id=current_user.id,
+                status='Pending'
+            ).first()
+            
+            if existing_report:
+                return jsonify({'success': False, 'error': 'You have already reported this file'}), 400
+            
+            # Create new report in database
+            report = Report(
+                file_id=file_id,
+                reporter_id=current_user.id,
+                reason=reason,
+                status='Pending'
+            )
+            db.session.add(report)
+            db.session.commit()
+            
+            app.logger.info(f"File {file_id} reported by {current_user.email}: {reason}")
+            
+            # Count pending reports for this file
+            report_count = Report.query.filter_by(file_id=file_id, status='Pending').count()
+            threshold = 3
+            is_hidden = report_count >= threshold
+            
+            response_data = {
+                'success': True,
+                'report_count': report_count,
+                'is_hidden': is_hidden,
+                'threshold': threshold
+            }
+            
+            if is_hidden:
+                response_data['message'] = 'File has been automatically hidden due to multiple reports and will be reviewed by administrators.'
+            else:
+                response_data['message'] = f'Report submitted successfully. File will be reviewed by administrators.'
+            
+            return jsonify(response_data)
+        
+        # Fallback to JSON-based reporting for anonymous users (legacy support)
         reports_data = load_reports_data()
         file_key = f"{file_type}_{file_id}"
         
-        # Initialize reports for this file if not exists
         if file_key not in reports_data["reports"]:
             reports_data["reports"][file_key] = []
         
-        # Check if this IP has already reported this file
         existing_reports = reports_data["reports"][file_key]
         for report in existing_reports:
             if report.get("reporter_ip") == reporter_ip:
@@ -1180,19 +1226,15 @@ def report_file(file_id):
                     'error': 'You have already reported this file'
                 }), 400
         
-        # Add new report
         new_report = {
             'reason': reason,
             'reporter_ip': reporter_ip,
             'timestamp': datetime.utcnow().isoformat(),
-            'user_agent': request.headers.get('User-Agent', '')[:200]  # Limit length
+            'user_agent': request.headers.get('User-Agent', '')[:200]
         }
         reports_data["reports"][file_key].append(new_report)
-        
-        # Save reports data
         save_reports_data(reports_data)
         
-        # Check if file should be hidden
         report_count = len(reports_data["reports"][file_key])
         threshold = reports_data.get("report_threshold", 3)
         is_hidden = report_count >= threshold
@@ -1212,6 +1254,7 @@ def report_file(file_id):
         return jsonify(response_data)
         
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Report error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 

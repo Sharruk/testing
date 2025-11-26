@@ -1,0 +1,19 @@
+{
+  "reports": {
+    "QP_2": [
+      {
+        "reason": "incorrect_info",
+        "reporter_ip": "10.83.10.149",
+        "timestamp": "2025-11-26T15:51:41.759731",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+      },
+      {
+        "reason": "inappropriate_content",
+        "reporter_ip": "10.83.3.32",
+        "timestamp": "2025-11-26T16:08:18.978820",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+      }
+    ]
+  },
+  "report_threshold": 3
+}

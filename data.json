@@ -676,6 +676,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 23,
+      "filename": "from_sklearn_ML.docx",
+      "original_filename": "from sklearn ML.docx",
+      "custom_filename": "from_sklearn_ML.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "CAT",
+      "subject": "Testing Cat",
+      "description": "",
+      "size": "21.1 KB",
+      "upload_date": "2025-11-26 15:50:05",
+      "file_path": "uploads/from_sklearn_ML.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
