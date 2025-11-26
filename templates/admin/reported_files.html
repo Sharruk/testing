@@ -141,7 +141,13 @@
 </div>
 
 <script>
-    const notesModal = new bootstrap.Modal(document.getElementById('notesModal'));
+document.addEventListener('DOMContentLoaded', function() {
+    let notesModal = null;
+    const modalEl = document.getElementById('notesModal');
+    
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        notesModal = new bootstrap.Modal(modalEl);
+    }
 
     // Handle delete file button clicks
     document.querySelectorAll('.delete-file-btn').forEach(btn => {
@@ -150,7 +156,11 @@
             document.getElementById('modalReportId').value = reportId;
             document.getElementById('modalAction').value = 'delete_file';
             document.getElementById('adminNotes').value = '';
-            notesModal.show();
+            if (notesModal) {
+                notesModal.show();
+            } else {
+                submitReportAction(reportId, 'delete_file', '');
+            }
         });
     });
 
@@ -161,36 +171,51 @@
             document.getElementById('modalReportId').value = reportId;
             document.getElementById('modalAction').value = 'dismiss';
             document.getElementById('adminNotes').value = '';
-            notesModal.show();
+            if (notesModal) {
+                notesModal.show();
+            } else {
+                submitReportAction(reportId, 'dismiss', '');
+            }
         });
     });
 
-    // Handle action submission
-    document.getElementById('submitAction').addEventListener('click', async function() {
-        const reportId = document.getElementById('modalReportId').value;
-        const action = document.getElementById('modalAction').value;
-        const notes = document.getElementById('adminNotes').value.trim();
-
+    // Submit action function
+    async function submitReportAction(reportId, action, notes) {
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers['X-CSRFToken'] = csrfToken.getAttribute('content');
+            }
+            
             const response = await fetch(`/api/reports/${reportId}/review`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ action, notes })
+                headers: headers,
+                body: JSON.stringify({ action: action, notes: notes })
             });
             const result = await response.json();
             if (result.success) {
-                notesModal.hide();
+                if (notesModal) notesModal.hide();
                 location.reload();
             } else {
-                alert('Error: ' + result.error);
+                alert('Error: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error processing action');
+            alert('Error processing action: ' + error.message);
         }
-    });
+    }
+
+    // Handle action submission from modal
+    const submitBtn = document.getElementById('submitAction');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const reportId = document.getElementById('modalReportId').value;
+            const action = document.getElementById('modalAction').value;
+            const notes = document.getElementById('adminNotes').value.trim();
+            submitReportAction(reportId, action, notes);
+        });
+    }
+});
 </script>
 {% endblock %}

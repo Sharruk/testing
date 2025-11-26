@@ -694,6 +694,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 24,
+      "filename": "part_2_OS.docx",
+      "original_filename": "part 2 OS.docx",
+      "custom_filename": "part_2_OS.docx",
+      "course_type": "pg",
+      "department": "mtech_cse",
+      "semester": "1",
+      "category": "CAT",
+      "subject": "OS",
+      "description": "",
+      "size": "25.9 KB",
+      "upload_date": "2025-11-26 16:20:31",
+      "file_path": "uploads/part_2_OS.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
