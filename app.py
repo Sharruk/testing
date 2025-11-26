@@ -1219,25 +1219,60 @@ def report_file(file_id):
 def file_detail(file_id):
     """Display detailed view of a file"""
     try:
-        data = load_data()
-        
-        # Search in regular files first
         file_found = None
         file_type = 'QP'
         
-        for file in data.get('files', []):
-            if file['id'] == file_id:
-                file_found = file
-                file_type = 'QP'
-                break
+        # First try database
+        db_file = File.query.get(file_id)
         
-        # Search in syllabus files if not found
+        if db_file:
+            # Check if file is visible to current user
+            if not is_file_visible_to_user(db_file):
+                flash('File not available', 'error')
+                return redirect(url_for('index'))
+            
+            # Convert database object to dict for template compatibility
+            file_found = db_file.to_dict()
+            file_type = 'QP'
+            
+            # Check if the physical file exists
+            if not os.path.exists(db_file.file_path):
+                app.logger.warning(f"Database has file {db_file.filename} but physical file missing at {db_file.file_path}")
+                flash('File has been deleted or moved. Please contact administrator.', 'error')
+                return redirect(url_for('index'))
+        
+        # Fallback to JSON for backward compatibility
         if not file_found:
-            for file in data.get('syllabus_files', []):
+            data = load_data()
+            
+            # Search in regular files first
+            for file in data.get('files', []):
                 if file['id'] == file_id:
                     file_found = file
-                    file_type = 'Syllabus'
+                    file_type = 'QP'
                     break
+            
+            # Search in syllabus files if not found
+            if not file_found:
+                for file in data.get('syllabus_files', []):
+                    if file['id'] == file_id:
+                        file_found = file
+                        file_type = 'Syllabus'
+                        break
+            
+            if file_found:
+                # Check if file is visible to current user (for JSON files)
+                if not is_file_visible_to_user(file_found):
+                    flash('File not available', 'error')
+                    return redirect(url_for('index'))
+                
+                # Check if the physical file exists
+                if 'filename' in file_found:
+                    file_path = os.path.join(UPLOAD_FOLDER, file_found['filename'])
+                    if not os.path.exists(file_path):
+                        app.logger.warning(f"JSON has file {file_found['filename']} but physical file missing")
+                        flash('File has been deleted or moved. Please contact administrator.', 'error')
+                        return redirect(url_for('index'))
         
         if not file_found:
             flash('File not found.', 'error')
@@ -1247,14 +1282,6 @@ def file_detail(file_id):
         if is_file_hidden(file_id, file_type):
             flash('This file has been temporarily hidden due to user reports and is under review.', 'warning')
             return redirect(url_for('index'))
-        
-        # Check if the physical file exists
-        if 'filename' in file_found:
-            file_path = os.path.join(UPLOAD_FOLDER, file_found['filename'])
-            if not os.path.exists(file_path):
-                app.logger.warning(f"Database has file {file_found['filename']} but physical file missing")
-                flash('File has been deleted or moved. Please contact administrator.', 'error')
-                return redirect(url_for('index'))
         
         # Ensure social fields exist
         if 'likes' not in file_found:

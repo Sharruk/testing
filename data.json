@@ -658,6 +658,24 @@
       "likes": 0,
       "dislikes": 0,
       "comments": []
+    },
+    {
+      "id": 22,
+      "filename": "collection__generic.docx",
+      "original_filename": "collection & generic.docx",
+      "custom_filename": "collection__generic.docx",
+      "course_type": "mba",
+      "department": "general_mba",
+      "semester": "1",
+      "category": "ESE",
+      "subject": "Test",
+      "description": "",
+      "size": "20.5 KB",
+      "upload_date": "2025-11-26 15:37:08",
+      "file_path": "uploads/collection__generic.docx",
+      "likes": 0,
+      "dislikes": 0,
+      "comments": []
     }
   ],
   "syllabus_files": []
