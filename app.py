@@ -2332,8 +2332,8 @@ def bus_routes():
         # Sort by upload date (newest first)
         bus_routes = sorted(bus_routes, key=lambda x: x.get('upload_date', ''), reverse=True)
         
-        # Check if user is admin (simple check)
-        is_admin = request.args.get('admin') == 'true'
+        # Check if user is admin (proper authentication check)
+        is_admin = current_user.is_authenticated and current_user.email in ADMIN_EMAILS
         
         return render_template('bus_routes.html', 
                              bus_routes=bus_routes,
@@ -2344,23 +2344,18 @@ def bus_routes():
         return redirect(url_for('index'))
 
 @app.route('/bus-routes/upload', methods=['POST'])
-@contributor_required
+@admin_required
 def upload_bus_route():
     """Upload new bus route file (admin only)"""
     try:
-        # Simple admin check
-        if request.args.get('admin') != 'true':
-            flash('Admin access required', 'error')
-            return redirect(url_for('bus_routes'))
-        
         if 'file' not in request.files:
             flash('No file selected', 'error')
-            return redirect(url_for('bus_routes') + '?admin=true')
+            return redirect(url_for('bus_routes'))
         
         file = request.files['file']
         if file.filename == '':
             flash('No file selected', 'error')
-            return redirect(url_for('bus_routes') + '?admin=true')
+            return redirect(url_for('bus_routes'))
         
         # Get form data
         title = request.form.get('title', '').strip()
@@ -2368,7 +2363,7 @@ def upload_bus_route():
         
         if not title:
             flash('Title is required', 'error')
-            return redirect(url_for('bus_routes') + '?admin=true')
+            return redirect(url_for('bus_routes'))
         
         if file and file.filename and allowed_file(file.filename):
             # Load existing data
@@ -2434,7 +2429,7 @@ def upload_bus_route():
         app.logger.error(f"Bus route upload error: {str(e)}")
         flash(f'Upload error: {str(e)}', 'error')
     
-    return redirect(url_for('bus_routes') + '?admin=true')
+    return redirect(url_for('bus_routes'))
 
 @app.route('/bus-routes/download/<int:file_id>')
 def download_bus_route(file_id):
@@ -2465,13 +2460,10 @@ def download_bus_route(file_id):
         return redirect(url_for('bus_routes'))
 
 @app.route('/bus-routes/delete/<int:file_id>', methods=['POST'])
-@contributor_required
+@admin_required
 def delete_bus_route(file_id):
     """Delete bus route file (admin only)"""
     try:
-        # Simple admin check
-        if request.args.get('admin') != 'true':
-            return jsonify({'success': False, 'error': 'Admin access required'}), 403
         
         data = load_transportation_data()
         file_data = None
@@ -2629,8 +2621,8 @@ def bus_route_detail(file_id):
             flash('File not found', 'error')
             return redirect(url_for('bus_routes'))
         
-        # Check if user is admin
-        is_admin = request.args.get('admin') == 'true'
+        # Check if user is admin (proper authentication check)
+        is_admin = current_user.is_authenticated and current_user.email in ADMIN_EMAILS
         
         return render_template('bus_route_detail.html', 
                              file_data=file_data,
