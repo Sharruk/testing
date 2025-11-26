@@ -3,18 +3,17 @@
 {% block title %}Upcoming Events{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-3 py-4">
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h1 class="card-title mb-3">
-                        <i class="fas fa-calendar-alt me-3"></i>Upcoming Events
-                    </h1>
-                    <p class="card-text lead">
-                        Stay updated with all SSN College events and activities.
-                    </p>
+            <div class="header-card">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fas fa-calendar-alt fa-2x"></i>
+                    <div>
+                        <h1 class="mb-1">Upcoming Events</h1>
+                        <p class="mb-0 text-muted">Stay updated with all SSN College events</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -23,400 +22,621 @@
     <!-- Add Event Button -->
     <div class="row mb-4">
         <div class="col-12">
-            <button type="button" class="btn btn-success btn-lg" id="addEventBtn" onclick="toggleAddForm()">
-                <i class="fas fa-plus me-2"></i>+ Add Event
+            <button class="btn btn-success btn-lg" onclick="openAddEventModal()">
+                <i class="fas fa-plus me-2"></i>Add Event
             </button>
         </div>
     </div>
 
-    <!-- Add Event Form (Hidden by default) -->
-    <div class="row mb-4" id="addEventForm" style="display: none;">
+    <!-- Events Container -->
+    <div class="row">
         <div class="col-12">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-plus me-2"></i>Add New Event
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ url_for('add_event') }}" method="post" enctype="multipart/form-data" id="eventForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="event_name" class="form-label">Event Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="event_name" name="event_name" 
-                                       placeholder="e.g., SSN Tech Fest 2025" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="event_category" class="form-label">Category <span class="text-danger">*</span></label>
-                                <select class="form-select" id="event_category" name="event_category" required>
-                                    <option value="">Select Category</option>
-                                    <option value="Tech Fest">Tech Fest</option>
-                                    <option value="Cultural Fest">Cultural Fest</option>
-                                    <option value="Hackathon">Hackathon</option>
-                                    <option value="Orientation">Orientation</option>
-                                    <option value="Induction">Induction</option>
-                                    <option value="Entrance Exam">Entrance Exam</option>
-                                    <option value="Others">Others</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="event_date" class="form-label">Event Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="event_date" name="event_date" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="event_time" class="form-label">Event Time <span class="text-danger">*</span></label>
-                                <input type="time" class="form-control" id="event_time" name="event_time" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="event_description" class="form-label">Description (Optional)</label>
-                            <textarea class="form-control" id="event_description" name="event_description" rows="3" 
-                                      placeholder="Brief description about this event..."></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="registration_link" class="form-label">Registration Link (Optional)</label>
-                            <input type="url" class="form-control" id="registration_link" name="registration_link" 
-                                   placeholder="https://example.com/register">
-                            <div class="form-text">Direct link for event registration</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="poster_image" class="form-label">Event Poster (Optional)</label>
-                            <input type="file" class="form-control" id="poster_image" name="poster_image" 
-                                   accept=".jpg,.jpeg,.png">
-                            <div class="form-text">Supported formats: JPG, PNG</div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success" id="submitBtn">
-                                <i class="fas fa-plus me-2"></i>Add Event
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="events-count mb-3">
+                <span class="badge bg-success fs-6">
+                    <span id="event-count">0</span> Events
+                </span>
+            </div>
+            <div id="events-container" class="row g-3"></div>
+            <div id="no-events" class="col-12 text-center py-5" style="display: none;">
+                <i class="fas fa-calendar-alt fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Events Yet</h4>
+                <p class="text-muted">Click the "Add Event" button to create one!</p>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Events Display -->
-    <div class="row">
-        <div class="col-12">
-            {% if events %}
-                <h3 class="mb-4">
-                    <i class="fas fa-calendar-check me-2"></i>Events 
-                    <span class="badge bg-success">{{ events|length }}</span>
-                    {% if upcoming_count > 0 %}
-                        <small class="text-success ms-2">({{ upcoming_count }} upcoming)</small>
-                    {% endif %}
-                </h3>
-                
-                <div class="row">
-                    {% for event in events %}
-                    <div class="col-lg-6 col-md-12 mb-4">
-                        <div class="card h-100 shadow-sm hover-card">
-                            <!-- Event Poster -->
-                            {% if event.poster_filename %}
-                            <div class="event-poster-container" style="height: 250px; overflow: hidden;">
-                                <img src="{{ url_for('event_poster', filename=event.poster_filename) }}" 
-                                     class="card-img-top" 
-                                     style="width: 100%; height: 100%; object-fit: cover;"
-                                     alt="{{ event.name }}"
-                                     loading="lazy">
-                            </div>
-                            {% endif %}
-                            
-                            <div class="card-body">
-                                <!-- Event Name and Category -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h5 class="card-title text-success mb-0">
-                                        <i class="fas fa-calendar-alt me-2"></i>{{ event.name }}
-                                    </h5>
-                                    <span class="badge 
-                                        {% if event.category == 'Tech Fest' %}bg-primary
-                                        {% elif event.category == 'Cultural Fest' %}bg-warning
-                                        {% elif event.category == 'Hackathon' %}bg-dark
-                                        {% elif event.category == 'Orientation' %}bg-info
-                                        {% elif event.category == 'Induction' %}bg-secondary
-                                        {% elif event.category == 'Entrance Exam' %}bg-danger
-                                        {% else %}bg-light text-dark
-                                        {% endif %}">
-                                        {{ event.category }}
-                                    </span>
-                                </div>
-                                
-                                <!-- Event Date & Time -->
-                                <div class="mb-3">
-                                    <h6 class="text-secondary mb-2">
-                                        <i class="fas fa-clock me-1"></i>Date & Time:
-                                    </h6>
-                                    {% set event_dt = event.event_datetime[:19] %}
-                                    {% set date_part = event_dt[:10] %}
-                                    {% set time_part = event_dt[11:16] %}
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="fas fa-calendar me-1"></i>{{ date_part }}
-                                        </span>
-                                        <span class="badge bg-light text-dark">
-                                            <i class="fas fa-clock me-1"></i>{{ time_part }}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Description -->
-                                {% if event.description %}
-                                <div class="mb-3">
-                                    <h6 class="text-secondary mb-2">
-                                        <i class="fas fa-info-circle me-1"></i>Description:
-                                    </h6>
-                                    <p class="card-text text-muted small">{{ event.description }}</p>
-                                </div>
-                                {% endif %}
-                                
-                                <!-- Registration Link -->
-                                {% if event.registration_link %}
-                                <div class="mb-3">
-                                    <a href="{{ event.registration_link }}" target="_blank" class="btn btn-outline-success btn-sm w-100">
-                                        <i class="fas fa-external-link-alt me-2"></i>Register Now
-                                    </a>
-                                    
-                                    <!-- Link display with copy button -->
-                                    <div class="mt-2">
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control form-control-sm text-muted" 
-                                                   value="{{ event.registration_link }}" 
-                                                   id="reg-link-{{ event.id }}" readonly>
-                                            <button class="btn btn-outline-secondary btn-sm" type="button" 
-                                                    onclick="copyRegistrationLink('{{ event.id }}')" title="Copy link">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                
-                                <!-- Date Added -->
-                                <div class="small text-muted mb-3">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Added: {{ event.date_added[:10] if event.date_added else 'Unknown' }}
-                                </div>
-                            </div>
-                            
-                            <!-- Admin Delete Button -->
-                            <div class="card-footer bg-white">
-                                <div class="d-flex justify-content-end">
-                                    <button class="btn btn-outline-danger btn-sm" 
-                                            onclick="deleteEvent({{ event.id }}, '{{ event.name }}')">
-                                        <i class="fas fa-trash me-1"></i>Delete
-                                    </button>
-                                </div>
-                            </div>
+<!-- Add Event Modal -->
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="addEventModalLabel">
+                    <i class="fas fa-calendar-plus me-2"></i>Add New Event
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEventForm">
+                    <div class="mb-3">
+                        <label for="eventName" class="form-label">Event Name *</label>
+                        <input type="text" class="form-control" id="eventName" required maxlength="100">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventCategory" class="form-label">Category *</label>
+                            <select class="form-select" id="eventCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Tech Fest">Tech Fest</option>
+                                <option value="Cultural Fest">Cultural Fest</option>
+                                <option value="Hackathon">Hackathon</option>
+                                <option value="Orientation">Orientation</option>
+                                <option value="Induction">Induction</option>
+                                <option value="Workshop">Workshop</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="eventDate" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="eventDate" required>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <i class="fas fa-calendar-alt fa-4x text-muted mb-3"></i>
-                            <h4 class="text-muted">No Events Available</h4>
-                            <p class="text-muted">Upcoming events will be displayed here.</p>
-                            <p class="text-success">Click the "Add Event" button above to add the first event.</p>
-                        </div>
+
+                    <div class="mb-3">
+                        <label for="eventTime" class="form-label">Time *</label>
+                        <input type="time" class="form-control" id="eventTime" required>
                     </div>
-                </div>
-            {% endif %}
+
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="eventDescription" rows="3" maxlength="300"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="registrationLink" class="form-label">Registration Link</label>
+                        <input type="url" class="form-control" id="registrationLink" placeholder="https://...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="instagramLink" class="form-label">Instagram Link</label>
+                        <input type="url" class="form-control" id="instagramLink" placeholder="https://instagram.com/...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="posterImage" class="form-label">Poster Image</label>
+                        <input type="file" class="form-control" id="posterImage" accept="image/*">
+                        <small class="text-muted">JPG, PNG, GIF (stored as base64)</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveEvent()">
+                    <i class="fas fa-save me-2"></i>Save Event
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Poster Modal -->
+<div class="modal fade" id="posterModal" tabindex="-1" aria-labelledby="posterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="posterModalLabel">Event Poster</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="posterImage" src="" alt="Event Poster" class="img-fluid" style="max-height: 500px; object-fit: contain;">
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.hover-card {
-    transition: all 0.3s ease-in-out;
+* {
+    box-sizing: border-box;
 }
 
-.hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+.header-card {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.event-poster-container {
+.header-card h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.event-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     position: relative;
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+    border-color: #28a745;
+}
+
+.event-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+}
+
+.event-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #212529;
+    margin: 0;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge-tech { background: #e7f1ff; color: #0d6efd; }
+.badge-cultural { background: #fff3cd; color: #664d03; }
+.badge-hackathon { background: #f8d7da; color: #842029; }
+.badge-orientation { background: #cfe2ff; color: #084298; }
+.badge-induction { background: #e2e3e5; color: #383d41; }
+.badge-workshop { background: #f0f3ff; color: #3d33d3; }
+.badge-other { background: #e8daef; color: #52396f; }
+
+.event-datetime {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
     background: #f8f9fa;
+    border-radius: 8px;
 }
 
-.event-poster-container img {
+.datetime-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.datetime-item i {
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+.event-description {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+    line-height: 1.5;
+}
+
+.event-poster {
+    width: 100%;
+    height: 150px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.event-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.3s ease;
-    object-fit: cover !important;
-    width: 100% !important;
-    height: 250px !important;
-    object-position: center;
 }
 
-.hover-card:hover .event-poster-container img {
+.event-poster:hover img {
     transform: scale(1.05);
 }
 
-/* Responsive design for mobile */
-@media (max-width: 768px) {
-    .event-poster-container {
-        height: 200px !important;
-    }
-    
-    .event-poster-container img {
-        height: 200px !important;
-    }
-    
-    .col-lg-6 {
-        margin-bottom: 1.5rem;
-    }
+.event-poster-placeholder {
+    color: #adb5bd;
+    font-size: 2rem;
 }
 
-/* Badge styling */
-.badge {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: auto;
 }
 
-/* Category specific styles */
-.badge.bg-primary { background-color: #0d6efd !important; }
-.badge.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
-.badge.bg-dark { background-color: #212529 !important; }
-.badge.bg-info { background-color: #0dcaf0 !important; color: #000 !important; }
-.badge.bg-secondary { background-color: #6c757d !important; }
-.badge.bg-danger { background-color: #dc3545 !important; }
+.action-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: 0.6rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-decoration: none;
+}
 
-/* Upcoming event indicator */
-.upcoming-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(25, 135, 84, 0.9);
+.action-btn i {
+    font-size: 0.9rem;
+}
+
+.btn-register {
+    background: #28a745;
     color: white;
-    padding: 2px 8px;
+}
+
+.btn-register:hover {
+    background: #218838;
+}
+
+.btn-instagram {
+    background: #E4405F;
+    color: white;
+}
+
+.btn-instagram:hover {
+    background: #d63447;
+}
+
+.btn-poster {
+    background: #0d6efd;
+    color: white;
+}
+
+.btn-poster:hover {
+    background: #0b5ed7;
+}
+
+.btn-bookmark {
+    background: #ffc107;
+    color: #000;
+    border: 2px solid transparent;
+}
+
+.btn-bookmark:hover {
+    background: #ffb800;
+}
+
+.btn-bookmark.bookmarked {
+    background: #ffc107 !important;
+    color: #000 !important;
+}
+
+.btn-bookmark.not-bookmarked {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 2px solid #dee2e6;
+}
+
+.btn-bookmark.not-bookmarked:hover {
+    background: #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .header-card {
+        padding: 1.5rem;
+    }
+
+    .header-card h1 {
+        font-size: 1.5rem;
+    }
+
+    .event-card {
+        padding: 1rem;
+    }
+
+    .event-title {
+        font-size: 1.1rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .event-datetime {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+.events-count {
+    font-size: 1.1rem;
+}
+
+.modal-content {
+    border: none;
     border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-success {
+    background: #28a745;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
 }
 </style>
 
 <script>
-// Toggle Add Form
-function toggleAddForm() {
-    const form = document.getElementById('addEventForm');
-    const btn = document.getElementById('addEventBtn');
-    
-    if (form.style.display === 'none' || form.style.display === '') {
-        form.style.display = 'block';
-        btn.style.display = 'none';
-        // Scroll to form
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-        form.style.display = 'none';
-        btn.style.display = 'block';
-        // Reset form
-        document.getElementById('eventForm').reset();
-    }
-}
+const EVENT_STORAGE_KEY = 'ssn_events';
+const BOOKMARK_STORAGE_KEY = 'ssn_bookmarks';
+let posterModal = null;
+let addEventModal = null;
 
-// Copy Registration Link Function
-function copyRegistrationLink(eventId) {
-    const linkInput = document.getElementById('reg-link-' + eventId);
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999); // For mobile devices
-    
-    try {
-        document.execCommand('copy');
-        showAlert('Registration link copied to clipboard!', 'success');
-    } catch (err) {
-        // Fallback for modern browsers
-        navigator.clipboard.writeText(linkInput.value).then(function() {
-            showAlert('Registration link copied to clipboard!', 'success');
-        }).catch(function(err) {
-            showAlert('Could not copy link', 'error');
-        });
-    }
-}
-
-// Delete Event Function
-function deleteEvent(eventId, eventName) {
-    if (confirm(`Are you sure you want to delete "${eventName}"?`)) {
-        fetch(`{{ url_for('delete_event', event_id=0) }}`.replace('0', eventId), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Event deleted successfully', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                showAlert('Error deleting event: ' + data.error, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error deleting event', 'error');
-        });
-    }
-}
-
-// Form Submission Handler
-document.getElementById('eventForm').addEventListener('submit', function(e) {
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    
-    // Show loading state
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-    submitBtn.disabled = true;
-    
-    // Reset on any error
-    setTimeout(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }, 10000);
-});
-
-// Set minimum date to today
 document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('event_date').setAttribute('min', today);
+    posterModal = new bootstrap.Modal(document.getElementById('posterModal'));
+    addEventModal = new bootstrap.Modal(document.getElementById('addEventModal'));
     
-    // Hide form on page load
-    document.getElementById('addEventForm').style.display = 'none';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('eventDate').setAttribute('min', today);
+    
+    renderEvents();
+    
+    document.getElementById('addEventForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+    });
 });
 
-// Alert function
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+function openAddEventModal() {
+    document.getElementById('addEventForm').reset();
+    addEventModal.show();
+}
+
+function saveEvent() {
+    const form = document.getElementById('addEventForm');
+    
+    if (!form.checkValidity()) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const name = document.getElementById('eventName').value.trim();
+    const category = document.getElementById('eventCategory').value;
+    const date = document.getElementById('eventDate').value;
+    const time = document.getElementById('eventTime').value;
+    const description = document.getElementById('eventDescription').value.trim();
+    const registrationLink = document.getElementById('registrationLink').value.trim();
+    const instagramLink = document.getElementById('instagramLink').value.trim();
+    const posterImageFile = document.getElementById('posterImage').files[0];
+
+    let posterBase64 = null;
+    
+    if (posterImageFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            posterBase64 = e.target.result;
+            addEventToStorage(name, category, date, time, description, registrationLink, instagramLink, posterBase64);
+        };
+        reader.readAsDataURL(posterImageFile);
+    } else {
+        addEventToStorage(name, category, date, time, description, registrationLink, instagramLink, null);
+    }
+}
+
+function addEventToStorage(name, category, date, time, description, registrationLink, instagramLink, posterBase64) {
+    const events = getEvents();
+    
+    const newEvent = {
+        id: Date.now(),
+        name: name,
+        category: category,
+        date: date,
+        time: time,
+        description: description,
+        registrationLink: registrationLink,
+        instagramLink: instagramLink,
+        poster: posterBase64,
+        createdAt: new Date().toISOString()
+    };
+    
+    events.push(newEvent);
+    saveEvents(events);
+    
+    renderEvents();
+    addEventModal.hide();
+    alert('Event added successfully!');
+}
+
+function getEvents() {
+    const data = localStorage.getItem(EVENT_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+}
+
+function saveEvents(events) {
+    localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(events));
+}
+
+function renderEvents() {
+    let events = getEvents();
+    
+    events.sort((a, b) => {
+        const aDateTime = new Date(`${a.date}T${a.time}`);
+        const bDateTime = new Date(`${b.date}T${b.time}`);
+        return aDateTime - bDateTime;
+    });
+    
+    const container = document.getElementById('events-container');
+    const noEvents = document.getElementById('no-events');
+    document.getElementById('event-count').textContent = events.length;
+    
+    if (events.length === 0) {
+        container.innerHTML = '';
+        noEvents.style.display = 'block';
+        return;
+    }
+    
+    noEvents.style.display = 'none';
+    
+    container.innerHTML = events.map(event => createEventCard(event)).join('');
+}
+
+function createEventCard(event) {
+    const bookmarks = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || '[]');
+    const isBookmarked = bookmarks.includes(event.id);
+    
+    const categoryClass = {
+        'Tech Fest': 'badge-tech',
+        'Cultural Fest': 'badge-cultural',
+        'Hackathon': 'badge-hackathon',
+        'Orientation': 'badge-orientation',
+        'Induction': 'badge-induction',
+        'Workshop': 'badge-workshop',
+        'Other': 'badge-other'
+    }[event.category] || 'badge-other';
+    
+    const posterHTML = event.poster 
+        ? `<div class="event-poster" onclick="viewPoster('${event.id}')"><img src="${event.poster}" alt="Poster"></div>`
+        : `<div class="event-poster" onclick="viewPoster('${event.id}')"><div class="event-poster-placeholder"><i class="fas fa-image"></i></div></div>`;
+    
+    return `
+        <div class="col-lg-4 col-md-6">
+            <div class="event-card">
+                <div class="event-card-header">
+                    <h5 class="event-title">${escapeHtml(event.name)}</h5>
+                    <span class="category-badge ${categoryClass}">${escapeHtml(event.category)}</span>
+                </div>
+                
+                <div class="event-datetime">
+                    <div class="datetime-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>${formatDate(event.date)}</span>
+                    </div>
+                    <div class="datetime-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${event.time}</span>
+                    </div>
+                </div>
+                
+                ${event.description ? `<p class="event-description">${escapeHtml(event.description)}</p>` : ''}
+                
+                ${posterHTML}
+                
+                <div class="event-actions">
+                    ${event.registrationLink ? `<a href="${event.registrationLink}" target="_blank" class="action-btn btn-register"><i class="fas fa-link"></i>Register</a>` : ''}
+                    ${event.instagramLink ? `<a href="${event.instagramLink}" target="_blank" class="action-btn btn-instagram"><i class="fab fa-instagram"></i>Instagram</a>` : ''}
+                    ${event.poster || true ? `<button class="action-btn btn-poster" onclick="viewPoster('${event.id}')"><i class="fas fa-image"></i>Poster</button>` : ''}
+                    <button class="action-btn btn-bookmark ${isBookmarked ? 'bookmarked' : 'not-bookmarked'}" onclick="toggleBookmark(${event.id}, this)">
+                        <i class="fas fa-${isBookmarked ? 'star' : 'star'} ${isBookmarked ? '' : ''}"></i>
+                        <span>${isBookmarked ? 'Saved' : 'Save'}</span>
+                    </button>
+                    <button class="action-btn" style="background: #dc3545; color: white; flex: 0.5;" onclick="deleteEvent(${event.id}, '${escapeHtml(event.name)}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
+}
+
+function toggleBookmark(eventId, button) {
+    let bookmarks = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || '[]');
     
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
+    if (bookmarks.includes(eventId)) {
+        bookmarks = bookmarks.filter(id => id !== eventId);
+        button.classList.remove('bookmarked');
+        button.classList.add('not-bookmarked');
+        button.innerHTML = '<i class="fas fa-star"></i><span>Save</span>';
+    } else {
+        bookmarks.push(eventId);
+        button.classList.remove('not-bookmarked');
+        button.classList.add('bookmarked');
+        button.innerHTML = '<i class="fas fa-star"></i><span>Saved</span>';
+    }
     
-    // Auto dismiss after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
+    localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarks));
+}
+
+function viewPoster(eventId) {
+    const events = getEvents();
+    const event = events.find(e => e.id == eventId);
+    
+    if (event && event.poster) {
+        document.getElementById('posterImage').src = event.poster;
+        posterModal.show();
+    } else {
+        alert('No poster available for this event');
+    }
+}
+
+function deleteEvent(eventId, eventName) {
+    if (confirm(`Delete "${eventName}"?`)) {
+        let events = getEvents();
+        events = events.filter(e => e.id !== eventId);
+        saveEvents(events);
+        
+        let bookmarks = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || '[]');
+        bookmarks = bookmarks.filter(id => id !== eventId);
+        localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarks));
+        
+        renderEvents();
+    }
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
 </script>
 {% endblock %}

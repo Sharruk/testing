@@ -3,20 +3,22 @@
     {
       "id": 1,
       "name": "Invente 2025",
-      "description": "",
+      "description": "Annual entrepreneurship and innovation festival",
       "event_datetime": "2025-07-22T09:30:00",
       "category": "Cultural Fest",
-      "registration_link": "",
+      "registration_link": "https://example.com/invente2025",
+      "instagram_link": "https://instagram.com/invente_ssn",
       "poster_filename": null,
       "date_added": "2025-06-30T17:31:20.243905"
     },
     {
       "id": 2,
       "name": "instincts",
-      "description": "",
+      "description": "The ultimate fest celebrating creativity and talent",
       "event_datetime": "2025-11-22T12:00:00",
       "category": "Cultural Fest",
-      "registration_link": "",
+      "registration_link": "https://example.com/instincts2025",
+      "instagram_link": "https://instagram.com/instincts_ssn",
       "poster_filename": null,
       "date_added": "2025-11-08T18:29:34.606185"
     }
